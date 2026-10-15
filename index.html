@@ -7,45 +7,45 @@
 <title>FIDE Management System</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;500&family=Roboto:wght@400;500;600;700&display=swap">
 <style>
-/* Layout: dark product bar + demo guide on top. FMS = cool, dense back office (sidebar + work area). Portal = warm ChessID-styled front office in a centred column. */
+/* Layout: FIDE-navy product bar + demo guide on top. FMS = FIDE palette from fide.com (navy #24305E, blue #374785, page #EAEEF3, raspberry #CC3366), dense back office. Portal = warm ChessID-styled front office in a centred column. */
 :root {
-  --bg: #F3F5F8; --surface: #FFFFFF; --surface-2: #EDF0F4; --line: #DCE1E8; --line-2: #C6CDD8;
-  --text: #121722; --text-2: #566072; --text-3: #6E7888;
-  --accent: #2350C0; --accent-ink: #FFFFFF; --accent-soft: #E6EDFB;
-  --paper: #FAF8F4; --p-surface: #FFFFFF; --p-surface-2: #F3F0E9; --p-line: #E3DED2; --p-text-2: #6B6558;
+  --bg: #EAEEF3; --surface: #FFFFFF; --surface-2: #E3E8EF; --line: #D3D9E4; --line-2: #C6CDDD;
+  --text: #24305E; --text-2: #4F5B7D; --text-3: #69749A;
+  --accent: #374785; --accent-ink: #FFFFFF; --accent-soft: #E1E6F2; --hot: #CC3366;
+  --paper: #FAF8F4; --p-surface: #FFFFFF; --p-surface-2: #F3F0E9; --p-line: #E3DED2; --p-text-2: #6B6558; --p-text: #1A1814; --p-line-2: #D5CFC2;
   --gold: #7E5F22; --gold-hi: #E0C288; --gold-mid: #B08A3E; --gold-soft: #F6EEDB;
   --good: #2C7550; --good-soft: #E3F1E8; --warn: #8A5D0B; --warn-soft: #FBF0D9; --bad: #AE3427; --bad-soft: #FBE6E2;
-  --chrome: #14130F; --chrome-2: #26241E; --chrome-line: #3A372F; --chrome-text: #F2EEE6; --chrome-dim: #A39C8C;
-  --shadow: 0 1px 2px rgba(18, 23, 34, .05), 0 6px 20px -12px rgba(18, 23, 34, .2);
-  --scrim: rgba(12, 14, 18, .45);
-  --sans: "IBM Plex Sans", ui-sans-serif, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
-  --mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --chrome: #24305E; --chrome-2: #2F3C70; --chrome-line: #45528A; --chrome-text: #FFFFFF; --chrome-dim: #BAC3DD;
+  --shadow: 0 1px 2px rgba(36, 48, 94, .06), 0 6px 20px -12px rgba(36, 48, 94, .22);
+  --scrim: rgba(16, 22, 43, .5);
+  --sans: Roboto, ui-sans-serif, -apple-system, "Segoe UI", Arial, sans-serif;
+  --mono: "Roboto Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
   --r: 10px;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #0F1217; --surface: #171B22; --surface-2: #1E232C; --line: #2A303A; --line-2: #3A4250;
-    --text: #ECEFF4; --text-2: #A0A9B8; --text-3: #8A94A4;
-    --accent: #86A8F6; --accent-ink: #0D1424; --accent-soft: #1C2842;
-    --paper: #13120F; --p-surface: #1C1A16; --p-surface-2: #24211B; --p-line: #353027; --p-text-2: #A39B8B;
+    --bg: #0F1424; --surface: #171D33; --surface-2: #1E2540; --line: #2A3354; --line-2: #3A4570;
+    --text: #E8ECF6; --text-2: #A6AFCB; --text-3: #8C95B3;
+    --accent: #9CACEB; --accent-ink: #121833; --accent-soft: #232C52; --hot: #F07AA0;
+    --paper: #13120F; --p-surface: #1C1A16; --p-surface-2: #24211B; --p-line: #353027; --p-text-2: #A39B8B; --p-text: #F2EEE6; --p-line-2: #45403A;
     --gold: #D9B266; --gold-hi: #F0DCAE; --gold-mid: #C69C50; --gold-soft: #2E2617;
     --good: #73C496; --good-soft: #16291E; --warn: #E3B45C; --warn-soft: #30250F; --bad: #F2907F; --bad-soft: #371B17;
-    --chrome: #0A0A08; --chrome-2: #1C1B17; --chrome-line: #34312A;
+    --chrome: #10162B; --chrome-2: #1C2340; --chrome-line: #33406B;
     --shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 10px 24px -14px rgba(0, 0, 0, .7);
     --scrim: rgba(0, 0, 0, .6);
     color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
-  --bg: #0F1217; --surface: #171B22; --surface-2: #1E232C; --line: #2A303A; --line-2: #3A4250;
-  --text: #ECEFF4; --text-2: #A0A9B8; --text-3: #8A94A4;
-  --accent: #86A8F6; --accent-ink: #0D1424; --accent-soft: #1C2842;
-  --paper: #13120F; --p-surface: #1C1A16; --p-surface-2: #24211B; --p-line: #353027; --p-text-2: #A39B8B;
+  --bg: #0F1424; --surface: #171D33; --surface-2: #1E2540; --line: #2A3354; --line-2: #3A4570;
+  --text: #E8ECF6; --text-2: #A6AFCB; --text-3: #8C95B3;
+  --accent: #9CACEB; --accent-ink: #121833; --accent-soft: #232C52; --hot: #F07AA0;
+  --paper: #13120F; --p-surface: #1C1A16; --p-surface-2: #24211B; --p-line: #353027; --p-text-2: #A39B8B; --p-text: #F2EEE6; --p-line-2: #45403A;
   --gold: #D9B266; --gold-hi: #F0DCAE; --gold-mid: #C69C50; --gold-soft: #2E2617;
   --good: #73C496; --good-soft: #16291E; --warn: #E3B45C; --warn-soft: #30250F; --bad: #F2907F; --bad-soft: #371B17;
-  --chrome: #0A0A08; --chrome-2: #1C1B17; --chrome-line: #34312A;
+  --chrome: #10162B; --chrome-2: #1C2340; --chrome-line: #33406B;
   --shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 10px 24px -14px rgba(0, 0, 0, .7);
   --scrim: rgba(0, 0, 0, .6);
   color-scheme: dark;
@@ -87,7 +87,7 @@ p { margin: 0; }
 .guide-in { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding-block: 9px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
 .g-step { font-size: 11.5px; color: var(--text-2); white-space: nowrap; }
 .g-bar { width: 90px; height: 4px; background: var(--surface-2); border-radius: 99px; overflow: hidden; flex: none; }
-.g-bar i { display: block; height: 100%; background: var(--accent); }
+.g-bar i { display: block; height: 100%; background: var(--hot); }
 .g-text { flex: 1 1 260px; min-width: 0; font-size: 13.5px; }
 
 /* shared components */
@@ -233,7 +233,7 @@ tr.total td { font-weight: 600; border-bottom: 0; }
 .phases { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
 
 /* Portal (front office, ChessID look) */
-.portal { --bg: var(--paper); --surface: var(--p-surface); --surface-2: var(--p-surface-2); --line: var(--p-line); --text-2: var(--p-text-2); --accent: var(--gold); --accent-soft: var(--gold-soft); --accent-ink: var(--chrome); background: var(--bg); min-height: calc(100vh - 110px); }
+.portal { --bg: var(--paper); --surface: var(--p-surface); --surface-2: var(--p-surface-2); --line: var(--p-line); --line-2: var(--p-line-2); --text: var(--p-text); --text-2: var(--p-text-2); color: var(--text); --accent: var(--gold); --accent-soft: var(--gold-soft); --accent-ink: var(--chrome); background: var(--bg); min-height: calc(100vh - 110px); }
 .portal .btn.primary { background: linear-gradient(135deg, var(--gold-hi), var(--gold-mid)); color: #14130F; }
 .phead { background: var(--surface); border-bottom: 1px solid var(--line); }
 .phead-in { max-width: 1080px; margin: 0 auto; display: flex; align-items: center; gap: 18px; flex-wrap: wrap; padding-block: 10px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
