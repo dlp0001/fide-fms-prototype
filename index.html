@@ -1,0 +1,1179 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>FIDE Management System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: dark product bar + demo guide on top. FMS = cool, dense back office (sidebar + work area). Portal = warm ChessID-styled front office in a centred column. */
+:root {
+  --bg: #F3F5F8; --surface: #FFFFFF; --surface-2: #EDF0F4; --line: #DCE1E8; --line-2: #C6CDD8;
+  --text: #121722; --text-2: #566072; --text-3: #6E7888;
+  --accent: #2350C0; --accent-ink: #FFFFFF; --accent-soft: #E6EDFB;
+  --paper: #FAF8F4; --p-surface: #FFFFFF; --p-surface-2: #F3F0E9; --p-line: #E3DED2; --p-text-2: #6B6558;
+  --gold: #7E5F22; --gold-hi: #E0C288; --gold-mid: #B08A3E; --gold-soft: #F6EEDB;
+  --good: #2C7550; --good-soft: #E3F1E8; --warn: #8A5D0B; --warn-soft: #FBF0D9; --bad: #AE3427; --bad-soft: #FBE6E2;
+  --chrome: #14130F; --chrome-2: #26241E; --chrome-line: #3A372F; --chrome-text: #F2EEE6; --chrome-dim: #A39C8C;
+  --shadow: 0 1px 2px rgba(18, 23, 34, .05), 0 6px 20px -12px rgba(18, 23, 34, .2);
+  --scrim: rgba(12, 14, 18, .45);
+  --sans: "IBM Plex Sans", ui-sans-serif, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --r: 10px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0F1217; --surface: #171B22; --surface-2: #1E232C; --line: #2A303A; --line-2: #3A4250;
+    --text: #ECEFF4; --text-2: #A0A9B8; --text-3: #8A94A4;
+    --accent: #86A8F6; --accent-ink: #0D1424; --accent-soft: #1C2842;
+    --paper: #13120F; --p-surface: #1C1A16; --p-surface-2: #24211B; --p-line: #353027; --p-text-2: #A39B8B;
+    --gold: #D9B266; --gold-hi: #F0DCAE; --gold-mid: #C69C50; --gold-soft: #2E2617;
+    --good: #73C496; --good-soft: #16291E; --warn: #E3B45C; --warn-soft: #30250F; --bad: #F2907F; --bad-soft: #371B17;
+    --chrome: #0A0A08; --chrome-2: #1C1B17; --chrome-line: #34312A;
+    --shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 10px 24px -14px rgba(0, 0, 0, .7);
+    --scrim: rgba(0, 0, 0, .6);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0F1217; --surface: #171B22; --surface-2: #1E232C; --line: #2A303A; --line-2: #3A4250;
+  --text: #ECEFF4; --text-2: #A0A9B8; --text-3: #8A94A4;
+  --accent: #86A8F6; --accent-ink: #0D1424; --accent-soft: #1C2842;
+  --paper: #13120F; --p-surface: #1C1A16; --p-surface-2: #24211B; --p-line: #353027; --p-text-2: #A39B8B;
+  --gold: #D9B266; --gold-hi: #F0DCAE; --gold-mid: #C69C50; --gold-soft: #2E2617;
+  --good: #73C496; --good-soft: #16291E; --warn: #E3B45C; --warn-soft: #30250F; --bad: #F2907F; --bad-soft: #371B17;
+  --chrome: #0A0A08; --chrome-2: #1C1B17; --chrome-line: #34312A;
+  --shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 10px 24px -14px rgba(0, 0, 0, .7);
+  --scrim: rgba(0, 0, 0, .6);
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--text); font-family: var(--sans); font-size: 14px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 30; background: var(--chrome); }
+button, input, select, textarea { font: inherit; color: inherit; }
+.mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.muted { color: var(--text-2); }
+.small { font-size: 12.5px; }
+h1, h2, h3 { margin: 0; text-wrap: balance; letter-spacing: -.01em; }
+h1 { font-size: clamp(22px, 3vw, 28px); font-weight: 600; line-height: 1.2; }
+h2 { font-size: 17px; font-weight: 600; }
+h3 { font-size: 15px; font-weight: 600; }
+p { margin: 0; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+
+/* top: product bar + guide */
+.top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; }
+.chrome { background: var(--chrome); color: var(--chrome-text); }
+.chrome-in { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; min-height: 54px; padding-block: 8px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.mark { display: flex; align-items: center; gap: 8px; font-weight: 600; white-space: nowrap; }
+.mark-k { background: var(--chrome-text); color: var(--chrome); font-size: 12px; letter-spacing: .14em; padding: 3px 7px 3px 8px; border-radius: 3px; }
+.mark-t { font-size: 13px; color: var(--chrome-dim); font-weight: 500; }
+.prod { display: flex; gap: 2px; background: var(--chrome-2); padding: 3px; border-radius: 8px; overflow-x: auto; scrollbar-width: none; max-width: 100%; }
+.prod button { border: 0; background: none; color: var(--chrome-dim); padding: 6px 12px; border-radius: 6px; cursor: pointer; white-space: nowrap; font-size: 13px; font-weight: 500; display: flex; gap: 6px; align-items: baseline; }
+.prod button small { font-size: 10.5px; letter-spacing: .08em; text-transform: uppercase; opacity: .8; }
+.prod button:hover { color: var(--chrome-text); }
+.prod button[aria-pressed="true"] { background: var(--chrome-text); color: var(--chrome); }
+.chrome-r { margin-left: auto; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.rolepick { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--chrome-dim); }
+.rolepick select { background: var(--chrome-2); color: var(--chrome-text); border: 1px solid var(--chrome-line); border-radius: 6px; padding: 5px 8px; font-size: 13px; }
+.today { font-size: 11.5px; color: var(--chrome-dim); border: 1px solid var(--chrome-line); border-radius: 99px; padding: 3px 10px; white-space: nowrap; }
+.cbtn { background: none; border: 1px solid var(--chrome-line); color: var(--chrome-text); border-radius: 6px; padding: 5px 10px; font-size: 12.5px; cursor: pointer; white-space: nowrap; }
+.cbtn:hover { background: var(--chrome-2); }
+.guide { background: var(--surface); border-bottom: 1px solid var(--line); }
+.guide-in { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding-block: 9px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.g-step { font-size: 11.5px; color: var(--text-2); white-space: nowrap; }
+.g-bar { width: 90px; height: 4px; background: var(--surface-2); border-radius: 99px; overflow: hidden; flex: none; }
+.g-bar i { display: block; height: 100%; background: var(--accent); }
+.g-text { flex: 1 1 260px; min-width: 0; font-size: 13.5px; }
+
+/* shared components */
+.btn { border: 1px solid transparent; border-radius: 8px; padding: 9px 16px; font-weight: 600; font-size: 13.5px; cursor: pointer; white-space: nowrap; }
+.btn.primary { background: var(--accent); color: var(--accent-ink); }
+.btn.primary:hover { filter: brightness(1.08); }
+.btn.ghost { background: transparent; border-color: var(--line-2); }
+.btn.ghost:hover { background: var(--surface-2); }
+.btn.danger { background: transparent; border-color: var(--bad); color: var(--bad); }
+.btn.small { padding: 6px 12px; font-size: 12.5px; }
+.btn[disabled] { opacity: .45; cursor: not-allowed; filter: none; }
+.linkbtn { background: none; border: 0; padding: 0; color: var(--accent); cursor: pointer; font-weight: 500; }
+.linkbtn:hover { text-decoration: underline; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); box-shadow: var(--shadow); }
+.pad { padding: 18px 20px; }
+.stack { display: grid; gap: 14px; }
+.row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.spread { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.eyebrow { font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--text-2); font-weight: 600; }
+.chip { display: inline-flex; align-items: center; gap: 5px; font-size: 11.5px; font-weight: 600; padding: 2px 9px; border-radius: 99px; white-space: nowrap; background: var(--surface-2); color: var(--text-2); }
+.chip.good { background: var(--good-soft); color: var(--good); }
+.chip.warn { background: var(--warn-soft); color: var(--warn); }
+.chip.bad { background: var(--bad-soft); color: var(--bad); }
+.chip.info { background: var(--accent-soft); color: var(--accent); }
+.chip .d { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.badge { margin-left: auto; background: var(--accent); color: var(--accent-ink); font-size: 11px; font-weight: 600; border-radius: 99px; padding: 0 7px; line-height: 18px; }
+.avatar { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; background: var(--accent-soft); color: var(--accent); font-size: 11px; font-weight: 600; flex: none; }
+.err { color: var(--bad); font-size: 13px; font-weight: 500; }
+.note { background: var(--surface-2); border-radius: 8px; padding: 10px 12px; font-size: 13px; color: var(--text-2); }
+.field { display: grid; gap: 5px; }
+.field > span { font-size: 12px; font-weight: 600; color: var(--text-2); }
+.field input, .field select, .field textarea { width: 100%; background: var(--bg); border: 1px solid var(--line-2); border-radius: 8px; padding: 8px 10px; font-size: 14px; }
+.field textarea { resize: vertical; }
+.pair { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.check { display: flex; gap: 9px; align-items: flex-start; font-size: 13.5px; }
+.check input { margin-top: 3px; accent-color: var(--accent); }
+table { border-collapse: collapse; width: 100%; }
+th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--line); font-size: 13.5px; vertical-align: top; }
+th { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--text-2); font-weight: 600; background: var(--surface-2); }
+td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+tr.total td { font-weight: 600; border-bottom: 0; }
+.tscroll { overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; }
+.tscroll table { min-width: 480px; }
+.tscroll tr:last-child td { border-bottom: 0; }
+
+/* FMS */
+.fms { display: grid; grid-template-columns: 236px minmax(0, 1fr); min-height: calc(100vh - 110px); }
+.side { background: var(--surface); border-right: 1px solid var(--line); display: flex; flex-direction: column; padding: 16px 10px; gap: 14px; padding-left: max(10px, env(safe-area-inset-left, 0px)); }
+.side-h { padding: 0 8px; display: grid; }
+.side-h b { font-size: 14px; }
+.side-h span { font-size: 12px; color: var(--text-2); }
+.snav { display: grid; gap: 2px; }
+.snav-i { display: flex; align-items: center; gap: 8px; border: 0; background: none; text-align: left; padding: 8px 10px; border-radius: 7px; cursor: pointer; color: var(--text-2); font-weight: 500; white-space: nowrap; }
+.snav-i:hover { background: var(--surface-2); color: var(--text); }
+.snav-i.on { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+.snav-i .soon { margin-left: auto; font-size: 10.5px; color: var(--text-3); font-weight: 500; }
+.side-f { margin-top: auto; display: flex; align-items: center; gap: 9px; padding: 10px 8px 0; border-top: 1px solid var(--line); font-size: 12.5px; color: var(--text-2); }
+.fmain { padding: 24px 28px 64px; display: grid; gap: 20px; align-content: start; min-width: 0; }
+.phead-row { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; }
+.kpi { padding: 14px 16px; display: grid; gap: 4px; }
+.kpi .v { font-size: 26px; font-weight: 600; letter-spacing: -.02em; font-variant-numeric: tabular-nums; line-height: 1.15; }
+.kpi .s { font-size: 12.5px; color: var(--text-2); }
+.two { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+.detail { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 16px; align-items: start; }
+.list { display: grid; }
+.li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 11px 0; border-bottom: 1px solid var(--line); }
+.li:last-child { border-bottom: 0; }
+.li .t { display: grid; gap: 2px; min-width: 0; }
+.li .t b { font-weight: 600; }
+.li .t span { font-size: 12.5px; color: var(--text-2); }
+.filters { display: flex; gap: 6px; flex-wrap: wrap; }
+.fpill { border: 1px solid var(--line-2); background: var(--surface); border-radius: 99px; padding: 4px 12px; font-size: 12.5px; cursor: pointer; color: var(--text-2); }
+.fpill[aria-pressed="true"] { background: var(--text); color: var(--bg); border-color: var(--text); }
+.board { display: grid; grid-auto-flow: column; grid-auto-columns: 214px; gap: 10px; overflow-x: auto; padding-bottom: 6px; }
+.col { background: var(--surface-2); border-radius: var(--r); padding: 10px; display: grid; gap: 8px; align-content: start; min-height: 120px; }
+.col-h { display: flex; justify-content: space-between; font-size: 12px; font-weight: 600; color: var(--text-2); padding: 0 2px; }
+.kcard { text-align: left; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 10px; display: grid; gap: 5px; cursor: pointer; box-shadow: var(--shadow); }
+.kcard:hover { border-color: var(--line-2); }
+.kcard.mine { border-color: var(--accent); box-shadow: inset 3px 0 0 var(--accent), var(--shadow); }
+.kcard .id { font-size: 11.5px; color: var(--text-2); }
+.kcard b { font-size: 13px; font-weight: 600; line-height: 1.3; }
+.kcard .f { font-size: 12px; color: var(--text-2); }
+.kcard .ft { display: flex; justify-content: space-between; align-items: center; gap: 6px; flex-wrap: wrap; }
+.bars { display: grid; gap: 14px; }
+.barrow { display: grid; gap: 5px; }
+.barrow .lbl { display: flex; justify-content: space-between; font-size: 13px; gap: 8px; flex-wrap: wrap; }
+.bar { height: 10px; background: var(--surface-2); border-radius: 99px; position: relative; overflow: hidden; }
+.bar i { position: absolute; inset: 0 auto 0 0; border-radius: 99px; }
+.bar i.req { background: var(--line-2); }
+.bar i.app { background: var(--accent); }
+.legend { display: flex; gap: 14px; font-size: 12px; color: var(--text-2); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.legend i { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+.track { list-style: none; margin: 0; padding: 0; display: grid; }
+.track li { display: grid; grid-template-columns: 18px minmax(0, 1fr); gap: 10px; padding: 7px 0; position: relative; }
+.track li::before { content: ""; position: absolute; left: 8px; top: 22px; bottom: -8px; width: 2px; background: var(--line); }
+.track li:last-child::before { display: none; }
+.tdot { width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--line-2); background: var(--surface); margin-top: 1px; z-index: 1; display: grid; place-items: center; font-size: 10px; font-weight: 700; }
+.track li.done .tdot { background: var(--good); border-color: var(--good); color: var(--surface); }
+.track li.cur .tdot { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.track li.bad .tdot { background: var(--bad); border-color: var(--bad); }
+.track b { display: block; font-weight: 600; font-size: 13.5px; }
+.track li.todo b { color: var(--text-2); font-weight: 500; }
+.track small { font-size: 12px; color: var(--text-2); }
+.checks { list-style: none; margin: 0; padding: 0; display: grid; gap: 9px; }
+.checks li { display: grid; grid-template-columns: 20px minmax(0, 1fr); gap: 8px; font-size: 13px; }
+.checks .ok { color: var(--good); font-weight: 700; }
+.checks .no { color: var(--bad); font-weight: 700; }
+.checks span small { display: block; color: var(--text-2); font-size: 12px; }
+.log { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.log li { display: grid; grid-template-columns: 54px minmax(0, 1fr); gap: 10px; font-size: 12.5px; }
+.log time { color: var(--text-2); font-family: var(--mono); font-size: 11.5px; padding-top: 1px; }
+.log b { font-weight: 600; }
+.act { border-color: var(--accent); box-shadow: inset 0 3px 0 var(--accent), var(--shadow); }
+.waiting { display: flex; gap: 12px; align-items: center; }
+.crit { display: grid; gap: 8px; }
+.crow { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; font-size: 13.5px; }
+.pills { display: flex; gap: 4px; }
+.pill { width: 34px; height: 30px; border-radius: 7px; border: 1px solid var(--line-2); background: var(--surface); cursor: pointer; font-weight: 600; font-family: var(--mono); }
+.pill:hover { border-color: var(--accent); }
+.pill.on { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.scoregrid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
+.scoregrid div { background: var(--surface-2); border-radius: 7px; padding: 7px 8px; display: grid; gap: 1px; }
+.scoregrid small { font-size: 11px; color: var(--text-2); line-height: 1.25; }
+.scoregrid b { font-family: var(--mono); font-size: 15px; }
+.kv { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin: 0; }
+.kv dt { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--text-2); font-weight: 600; }
+.kv dd { margin: 2px 0 0; font-weight: 500; }
+.stub { max-width: 640px; }
+.arch { max-width: 1080px; margin: 0 auto; padding: 28px max(16px, env(safe-area-inset-right, 0px)) 64px max(16px, env(safe-area-inset-left, 0px)); display: grid; gap: 18px; }
+.layer { border-radius: 12px; padding: 16px 18px; display: grid; gap: 12px; border: 1px solid var(--line); background: var(--surface); }
+.layer.front { border-color: var(--gold-mid); background: var(--gold-soft); }
+.layer.core { border-color: var(--accent); background: var(--accent-soft); }
+.layer h2 { display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+.layer h2 small { font-size: 12.5px; font-weight: 500; color: var(--text-2); }
+.mods { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 8px; }
+.mod { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 9px 11px; display: grid; gap: 2px; }
+.mod b { font-size: 13px; font-weight: 600; }
+.mod small { font-size: 11.5px; color: var(--text-2); }
+.mod.live { border-color: var(--good); }
+.flowdown { text-align: center; color: var(--text-2); font-size: 12px; letter-spacing: .06em; }
+.phases { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+
+/* Portal (front office, ChessID look) */
+.portal { --bg: var(--paper); --surface: var(--p-surface); --surface-2: var(--p-surface-2); --line: var(--p-line); --text-2: var(--p-text-2); --accent: var(--gold); --accent-soft: var(--gold-soft); --accent-ink: var(--chrome); background: var(--bg); min-height: calc(100vh - 110px); }
+.portal .btn.primary { background: linear-gradient(135deg, var(--gold-hi), var(--gold-mid)); color: #14130F; }
+.phead { background: var(--surface); border-bottom: 1px solid var(--line); }
+.phead-in { max-width: 1080px; margin: 0 auto; display: flex; align-items: center; gap: 18px; flex-wrap: wrap; padding-block: 10px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.pbrand { font-weight: 600; font-size: 16px; white-space: nowrap; }
+.pbrand em { font-style: normal; color: var(--gold); }
+.pnav { display: flex; gap: 2px; overflow-x: auto; scrollbar-width: none; max-width: 100%; }
+.pnav button { border: 0; background: none; padding: 7px 11px; border-radius: 7px; cursor: pointer; color: var(--text-2); white-space: nowrap; font-weight: 500; }
+.pnav button:hover { color: var(--text); background: var(--surface-2); }
+.pnav button.on { color: var(--text); background: var(--surface-2); box-shadow: inset 0 -2px 0 var(--gold-mid); }
+.pwho { margin-left: auto; display: flex; gap: 9px; align-items: center; font-size: 13px; }
+.pwho small { display: block; color: var(--text-2); font-size: 11.5px; }
+.cid { font-size: 10.5px; font-weight: 700; letter-spacing: .04em; }
+.cid em { font-style: normal; background: linear-gradient(135deg, var(--gold-hi), var(--gold-mid)); color: #14130F; padding: 0 3px; border-radius: 2px; margin-left: 1px; }
+.pmain { max-width: 1080px; margin: 0 auto; padding-block: 26px 64px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 18px; }
+.signin { min-height: calc(100vh - 110px); display: grid; place-items: center; padding-block: 32px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.signcard { width: min(440px, 100%); padding: 28px; display: grid; gap: 18px; }
+.cidbtn { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; background: #14130F; color: #F2EEE6; border: 1px solid #3A372F; border-radius: 9px; padding: 12px 16px; font-weight: 600; cursor: pointer; font-size: 15px; }
+.cidbtn:hover { background: #26241E; }
+.cidbtn .cid { font-size: 15px; }
+.fedcard { position: relative; overflow: hidden; background: #14130F; color: #F2EEE6; border-radius: 14px; padding: 20px 22px; display: grid; gap: 14px; }
+.fedcard::after { content: ""; position: absolute; inset: 0; background: repeating-conic-gradient(#FFFFFF 0% 25%, transparent 0% 50%) 0 0 / 96px 96px; opacity: .04; pointer-events: none; }
+.fedcard::before { content: ""; position: absolute; inset: 0 0 auto; height: 3px; background: linear-gradient(90deg, #8A6A28, #E0C288 45%, #8A6A28); }
+.fedcard .code { font-family: var(--mono); color: #E0C288; letter-spacing: .12em; font-size: 13px; }
+.fedcard h1 { color: #F2EEE6; }
+.fedcard .fmeta { display: flex; gap: 8px; flex-wrap: wrap; position: relative; z-index: 1; }
+.fedcard .chip { background: rgba(242, 238, 230, .1); color: #E7E2D6; }
+.fedcard .chip.good { background: rgba(115, 196, 150, .16); color: #9BDDB6; }
+.season { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 16px; align-items: center; }
+.slots { display: flex; gap: 5px; margin-top: 6px; }
+.slots i { width: 34px; height: 8px; border-radius: 99px; background: var(--surface-2); border: 1px solid var(--line); }
+.slots i.used { background: var(--gold-mid); border-color: var(--gold-mid); }
+.prow { display: grid; grid-template-columns: minmax(0, 1fr) 180px auto; gap: 16px; align-items: center; padding: 14px 18px; }
+.prow .t { display: grid; gap: 3px; min-width: 0; }
+.prow .t b { font-size: 14.5px; font-weight: 600; }
+.prog { height: 6px; background: var(--surface-2); border-radius: 99px; overflow: hidden; }
+.prog i { display: block; height: 100%; background: var(--gold-mid); }
+.stepper { display: flex; gap: 6px; flex-wrap: wrap; }
+.stepper span { display: flex; align-items: center; gap: 7px; font-size: 13px; color: var(--text-2); padding: 6px 12px 6px 6px; border-radius: 99px; background: var(--surface); border: 1px solid var(--line); }
+.stepper span i { width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; font-style: normal; font-size: 11.5px; font-weight: 600; background: var(--surface-2); font-family: var(--mono); }
+.stepper span.on { color: var(--text); font-weight: 600; border-color: var(--gold-mid); }
+.stepper span.on i { background: var(--gold-mid); color: #14130F; }
+.stepper span.done i { background: var(--good-soft); color: var(--good); }
+.wiz { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 16px; align-items: start; }
+.radios { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.radio { text-align: left; border: 1px solid var(--line-2); background: var(--surface); border-radius: 9px; padding: 11px 12px; cursor: pointer; display: grid; gap: 2px; }
+.radio b { font-weight: 600; }
+.radio small { color: var(--text-2); font-size: 12px; }
+.radio[aria-pressed="true"] { border-color: var(--gold-mid); box-shadow: inset 0 0 0 1px var(--gold-mid); background: var(--gold-soft); }
+.bline { display: grid; grid-template-columns: minmax(0, 1fr) 130px 34px; gap: 8px; align-items: center; }
+.bline input { width: 100%; background: var(--bg); border: 1px solid var(--line-2); border-radius: 8px; padding: 7px 9px; }
+.bline input.amt { text-align: right; font-family: var(--mono); }
+.iconbtn { width: 34px; height: 34px; border-radius: 8px; border: 1px solid var(--line); background: none; cursor: pointer; color: var(--text-2); font-size: 16px; line-height: 1; }
+.iconbtn:hover { color: var(--bad); border-color: var(--bad); }
+.sumrow { display: flex; justify-content: space-between; gap: 12px; font-size: 13.5px; font-variant-numeric: tabular-nums; }
+.sumrow.big { font-size: 16px; font-weight: 600; border-top: 1px solid var(--line); padding-top: 10px; }
+.next { border-left: 3px solid var(--gold-mid); }
+.ptrack { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 6px; }
+.ptrack li { display: grid; gap: 6px; font-size: 12px; color: var(--text-2); }
+.ptrack li i { height: 6px; border-radius: 99px; background: var(--surface-2); display: block; }
+.ptrack li.done i { background: var(--good); }
+.ptrack li.cur i { background: var(--gold-mid); }
+.ptrack li.bad i { background: var(--bad); }
+.ptrack li.cur, .ptrack li.done { color: var(--text); }
+.ptrack li b { font-weight: 600; font-size: 12.5px; }
+.slotbtns { display: grid; gap: 8px; }
+.publiccard { display: grid; gap: 12px; }
+.publiccard .ph { height: 120px; border-radius: 8px; background: repeating-conic-gradient(var(--surface-2) 0% 25%, var(--surface) 0% 50%) 0 0 / 40px 40px; border: 1px solid var(--line); }
+
+/* modal, toast */
+.modal { position: fixed; inset: 0; z-index: 50; background: var(--scrim); display: grid; place-items: center; padding: max(16px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) max(16px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); }
+.modal-box { width: min(620px, 100%); max-height: 86vh; overflow: auto; background: var(--surface); color: var(--text); border-radius: 12px; padding: 22px 24px; display: grid; gap: 14px; box-shadow: var(--shadow); }
+.letter { display: grid; gap: 12px; font-size: 14px; line-height: 1.6; }
+.letter dl { display: grid; grid-template-columns: 140px minmax(0, 1fr); gap: 6px 12px; margin: 0; }
+.letter dt { color: var(--text-2); }
+.letter dd { margin: 0; }
+.toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(18px + env(safe-area-inset-bottom, 0px)); z-index: 60; background: var(--text); color: var(--bg); padding: 10px 16px; border-radius: 8px; font-weight: 500; font-size: 13.5px; box-shadow: var(--shadow); max-width: calc(100% - 32px); }
+
+@media (max-width: 960px) {
+  .fms { grid-template-columns: minmax(0, 1fr); }
+  .side { border-right: 0; border-bottom: 1px solid var(--line); padding: 10px max(16px, env(safe-area-inset-right, 0px)) 10px max(16px, env(safe-area-inset-left, 0px)); gap: 8px; }
+  .side-h, .side-f { display: none; }
+  .snav { display: flex; overflow-x: auto; scrollbar-width: none; }
+  .detail, .wiz, .two { grid-template-columns: minmax(0, 1fr); }
+  .fmain { padding: 18px max(16px, env(safe-area-inset-right, 0px)) 56px max(16px, env(safe-area-inset-left, 0px)); }
+}
+@media (max-width: 640px) {
+  .prow { grid-template-columns: minmax(0, 1fr); }
+  .pair, .radios { grid-template-columns: minmax(0, 1fr); }
+  .season { grid-template-columns: minmax(0, 1fr); }
+  .ptrack { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .scoregrid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .pwho { margin-left: 0; }
+  .chrome-r { margin-left: 0; }
+  .g-bar { display: none; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+</style>
+</head>
+<body>
+
+<div class="top">
+  <header class="chrome" id="chrome"></header>
+  <div class="guide" id="guide"></div>
+</div>
+<div id="view"></div>
+<div id="modal" class="modal" hidden></div>
+<div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+
+<script>
+/* ---------- dates and formatting ---------- */
+const TODAY = '2027-04-14';
+const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const D = s => new Date(s + 'T12:00:00Z');
+const iso = d => d.toISOString().slice(0, 10);
+function addWD(s, n) { const d = D(s); let k = 0; while (k < n) { d.setUTCDate(d.getUTCDate() + 1); const w = d.getUTCDay(); if (w !== 0 && w !== 6) k++; } return iso(d); }
+function wdBetween(a, b) { const d = D(a), e = D(b); let n = 0; while (d < e) { d.setUTCDate(d.getUTCDate() + 1); const w = d.getUTCDay(); if (w !== 0 && w !== 6) n++; } return n; }
+function addDays(s, n) { const d = D(s); d.setUTCDate(d.getUTCDate() + n); return iso(d); }
+const fmt = s => { if (!s) return '—'; const d = D(s); return d.getUTCDate() + ' ' + MON[d.getUTCMonth()] + ' ' + d.getUTCFullYear(); };
+const fmtS = s => { if (!s) return '—'; const d = D(s); return d.getUTCDate() + ' ' + MON[d.getUTCMonth()]; };
+const usd = n => 'USD ' + Math.round(n || 0).toLocaleString('en-US');
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const $ = s => document.querySelector(s);
+
+/* ---------- reference data (all mock) ---------- */
+const FEDS = {
+  ALD: { name: 'Aldoria Chess Federation', cont: 'Europe' },
+  BRV: { name: 'Brevania Chess Union', cont: 'Europe' },
+  KES: { name: 'Kestria Chess Federation', cont: 'Europe' },
+  KSB: { name: 'Kasomba Chess Federation', cont: 'Africa' },
+  NYR: { name: 'Nyerezi Chess Association', cont: 'Africa' },
+  UBD: { name: 'Ubandu Chess Federation', cont: 'Africa' },
+  SRK: { name: 'Sarakhet Chess Federation', cont: 'Asia' },
+  MRV: { name: 'Meruvia Chess Federation', cont: 'Asia' },
+  TLO: { name: 'Taloa Chess Association', cont: 'Asia', reportOverdue: 'Final report for PDC-2026-019 overdue since 15 Feb 2027' },
+  RAL: { name: 'Rio Alto Chess Federation', cont: 'Americas' },
+  SLC: { name: 'Santa Lucera Chess Federation', cont: 'Americas' },
+  CRV: { name: 'Corvelle Chess Federation', cont: 'Americas' },
+};
+const CONTS = ['Africa', 'Americas', 'Asia', 'Europe'];
+const MYFED = 'KSB';
+const ENVELOPE = 600000;
+const ROLES = {
+  secretariat: { label: 'Secretariat', short: 'SC' },
+  councillor: { label: 'Councillor · Africa', short: 'CA', cont: 'Africa' },
+  chair: { label: 'Commission chair', short: 'CH' },
+  coordinator: { label: 'Grants coordinator', short: 'GC' },
+  management: { label: 'Management', short: 'MG' },
+  treasurer: { label: 'Treasurer', short: 'TR' },
+  accounting: { label: 'Accounting', short: 'AC' },
+};
+const STAGES = [
+  { k: 'pitch', label: 'Pitch', owner: 'PDC or EDU commission', col: 'Pitch & drafting' },
+  { k: 'full', label: 'Full application', owner: 'Federation', col: 'Pitch & drafting' },
+  { k: 'check', label: 'Eligibility check', owner: 'System · Secretariat', sla: 1, col: 'Eligibility' },
+  { k: 'councillor', label: 'Councillor review', owner: 'Councillor of the continent', sla: 3, col: 'Councillor' },
+  { k: 'commission', label: 'Commission evaluation', owner: 'Chair and grants coordinator', sla: 3, col: 'Commission' },
+  { k: 'approval', label: 'Approval', owner: 'Management and Treasurer, in parallel', sla: 3, col: 'Approval' },
+  { k: 'agreement', label: 'Agreement', owner: 'Federation signs', col: 'Agreement' },
+  { k: 'payment', label: 'Bank check and payment', owner: 'Accounting', sla: 10, col: 'Payment' },
+  { k: 'project', label: 'Project running', owner: 'Federation', col: 'In progress' },
+  { k: 'report', label: 'Report review', owner: 'Grants coordinator', sla: 5, col: 'Report review' },
+  { k: 'closed', label: 'Closed and published', owner: 'Done', col: 'Closed' },
+  { k: 'declined', label: 'Declined', owner: 'Done', col: 'Closed' },
+];
+const STG = Object.fromEntries(STAGES.map((s, i) => [s.k, { ...s, i }]));
+const COLS = ['Pitch & drafting', 'Eligibility', 'Councillor', 'Commission', 'Approval', 'Agreement', 'Payment', 'In progress', 'Report review', 'Closed'];
+const TRACK = ['check', 'councillor', 'commission', 'approval', 'agreement', 'payment', 'project', 'report', 'closed'];
+const CRIT = [['impact', 'Development impact'], ['plan', 'Plan and feasibility'], ['budget', 'Budget value'], ['sustain', 'Sustainability'], ['fit', 'Fit with FIDE priorities']];
+const SLOTS = [{ d: '2027-04-16', t: 'Fri 16 Apr · 11:00 CET' }, { d: '2027-04-19', t: 'Mon 19 Apr · 14:00 CET' }, { d: '2027-04-20', t: 'Tue 20 Apr · 10:00 CET' }];
+const STUBS = {
+  dues: { t: 'Membership & dues', d: 'Annual dues for every federation, invoices and payment status. Synced with payments.fide.com, so the grant eligibility check reads dues status automatically.', ph: 'Phase 2' },
+  events: { t: 'Events & sanctioning', d: 'Registration of rated tournaments, sanctioning fees, arbiters and organisers.', ph: 'Phase 2' },
+  ratings: { t: 'Ratings & titles', d: 'Rating reports, title and licence applications, transfers between federations.', ph: 'Phase 3' },
+  finance: { t: 'Finance', d: 'Budgets per commission, commitments and payments, exports to the accounting system.', ph: 'Phase 3' },
+  docs: { t: 'Documents', d: 'Agreements, decision letters and e-signatures for every module, with one archive per federation. Grants already use it.', ph: 'Phase 1, grows with each module' },
+  pdues: { t: 'Membership & dues', d: 'See and pay your federation’s annual dues and invoices.', ph: 'Phase 2' },
+  pevents: { t: 'Events', d: 'Register tournaments for rating, request sanctioning, appoint arbiters.', ph: 'Phase 2' },
+  pplayers: { t: 'Players & ratings', d: 'Register players, request FIDE IDs, submit rating reports, apply for titles.', ph: 'Phase 3' },
+  pofficers: { t: 'Officers & access', d: 'Choose which officers of your federation can sign in and what each of them can do. Everyone signs in with ChessID.', ph: 'Phase 1' },
+};
+
+/* ---------- seed applications ---------- */
+function lines(total) {
+  const parts = [['Coaching and instruction', .42], ['Equipment and materials', .24], ['Venue and logistics', .22], ['Communication and reporting', .12]];
+  let rest = total;
+  return parts.map(([cat, f], i) => { const amt = i === parts.length - 1 ? rest : Math.round(total * f / 100) * 100; rest -= amt; return { cat, amt }; });
+}
+function payPlan(approved, t1, t2) {
+  const a1 = Math.round(approved * .7);
+  return [
+    { label: 'Tranche 1 · 70% after signature and bank check', amt: a1, status: t1 ? 'paid' : 'scheduled', date: t1 || null },
+    { label: 'Tranche 2 · 30% after the final report', amt: approved - a1, status: t2 ? 'paid' : 'after report', date: t2 || null },
+  ];
+}
+const TRANS = {
+  check: ['Federation', 'Full application submitted'],
+  councillor: ['System', 'Eligibility checks passed, routed to councillor'],
+  commission: ['Councillor', 'Review submitted'],
+  approval: ['Commission', 'Evaluated, recommended for approval'],
+  agreement: ['Management, Treasurer', 'Approved, decision letter sent'],
+  payment: ['Federation', 'Agreement signed, bank details submitted'],
+  project: ['Accounting', 'Bank details verified, tranche 1 paid'],
+  report: ['Federation', 'Final report submitted'],
+  closed: ['Grants coordinator', 'Report approved and published'],
+};
+function genHistory(a) {
+  if (a.stage === 'pitch') {
+    a.history = [{ d: a.submitted, who: 'Federation', what: 'Short application submitted' }, { d: a.submitted, who: 'System', what: 'Pitch booked: ' + a.pitch.slot + ' with ' + a.pitch.with }];
+    return;
+  }
+  const end = a.stage === 'declined' ? 'approval' : a.stage;
+  const n = TRACK.indexOf(end);
+  const span = wdBetween(a.submitted, a.since);
+  a.history = [{ d: a.submitted, who: 'Federation', what: 'Short application submitted, pitch held' }];
+  for (let i = 0; i <= n; i++) {
+    const k = TRACK[i];
+    const d = i === n ? a.since : addWD(a.submitted, Math.round(span * i / Math.max(n, 1)));
+    let [who, what] = TRANS[k];
+    if (k === 'commission') who = 'Councillor · ' + a.cont;
+    a.history.push({ d, who, what });
+  }
+  if (a.stage === 'declined') a.history[a.history.length - 1] = { d: a.since, who: 'Commission', what: 'Declined: ' + a.declineReason };
+  if (a.flags.length) a.history.push({ d: a.since, who: 'System', what: 'Check needs a decision: ' + a.flags[0] });
+}
+function seed() {
+  const S = [
+    { id: 'PDC-2027-001', fed: 'ALD', title: 'Junior coaching network', req: 24000, submitted: '2027-03-03', stage: 'project', since: '2027-03-17', days: 7, approved: 22000, t1: '2027-03-17', reportDue: '2027-09-30' },
+    { id: 'PDC-2027-003', fed: 'SRK', title: 'Chess for rural schools', track: 'Education', req: 15000, submitted: '2027-03-08', stage: 'payment', since: '2027-04-06', days: 12, approved: 15000 },
+    { id: 'PDC-2027-004', fed: 'SLC', title: 'Arbiter certification course', req: 9800, submitted: '2027-03-22', stage: 'agreement', since: '2027-04-01', days: 8, approved: 9800 },
+    { id: 'PDC-2027-005', fed: 'NYR', title: 'Women’s chess league', req: 21000, submitted: '2027-03-31', stage: 'approval', since: '2027-04-12', mgmt: true },
+    { id: 'PDC-2027-006', fed: 'KSB', title: 'National arbiter seminar', req: 7500, submitted: '2027-03-04', stage: 'project', since: '2027-03-19', days: 6, approved: 7500, t1: '2027-03-19', reportDue: '2027-05-31' },
+    { id: 'PDC-2027-007', fed: 'MRV', title: 'Online training platform', req: 30000, submitted: '2027-03-09', stage: 'declined', since: '2027-03-23', days: 10, declineReason: 'Most of the budget is equipment. Resubmit with a coaching plan.' },
+    { id: 'PDC-2027-008', fed: 'BRV', title: 'Chess in prisons pilot', track: 'Education', req: 12000, submitted: '2027-04-02', stage: 'commission', since: '2027-04-13' },
+    { id: 'PDC-2027-009', fed: 'CRV', title: 'Coaches licensing programme', req: 18000, submitted: '2027-03-29', stage: 'commission', since: '2027-04-07' },
+    { id: 'PDC-2027-010', fed: 'UBD', title: 'Inter-schools championship', track: 'Education', req: 14500, submitted: '2027-04-12', stage: 'councillor', since: '2027-04-13' },
+    { id: 'PDC-2027-011', fed: 'KES', title: 'Rating officers training', req: 11000, submitted: '2027-04-07', stage: 'councillor', since: '2027-04-08' },
+    { id: 'PDC-2027-012', fed: 'TLO', title: 'Island tournament series', req: 16000, submitted: '2027-04-13', stage: 'check', since: '2027-04-13', flags: ['Final report for PDC-2026-019 overdue since 15 Feb 2027'] },
+    { id: 'PDC-2027-013', fed: 'RAL', title: 'Girls’ chess academy', track: 'Education', req: 20000, submitted: '2027-04-09', stage: 'pitch', since: '2027-04-09', pitch: { slot: 'Fri 16 Apr · 11:00 CET', with: 'EDU Commission' } },
+    { id: 'PDC-2026-031', fed: 'KSB', title: 'Women’s training camp', req: 8000, submitted: '2026-04-06', stage: 'closed', since: '2026-11-20', days: 7, approved: 8000, t1: '2026-04-24', t2: '2026-11-20', reportDue: '2026-10-31', season: 2026 },
+    { id: 'PDC-2026-044', fed: 'RAL', title: 'Regional youth festival', req: 12000, submitted: '2026-05-11', stage: 'closed', since: '2026-12-03', days: 9, approved: 12000, t1: '2026-05-28', t2: '2026-12-03', reportDue: '2026-11-15', season: 2026 },
+  ];
+  return S.map(o => {
+    const cf = Math.round(o.req * .1 / 100) * 100;
+    const a = {
+      track: 'General', start: (o.season || 2027) + '-05-01', end: (o.season || 2027) + '-10-31', summary: 'Programme run by the federation with its own coaches and volunteers. Details are in the attached project plan.', benef: '—',
+      flags: [], approvals: { management: null, treasurer: null }, review: null, evaluation: null, signed: null, bank: null, payments: [],
+      report: { due: o.reportDue || null, status: 'none' }, decided: null, published: false, pitch: null, season: 2027, cofin: { fed: cf, other: 0 }, ...o,
+    };
+    a.cont = FEDS[a.fed].cont;
+    a.requested = a.req;
+    a.budget = lines(a.req + cf);
+    const st = STG[a.stage];
+    a.due = st.sla ? addWD(a.since, st.sla) : null;
+    const idx = st.i;
+    if (idx >= STG.commission.i) a.review = { scores: { impact: 4, plan: 4, budget: 3, sustain: 4, fit: 4 }, total: 19, comment: 'Clear plan, realistic budget.', coi: true, by: 'Councillor · ' + a.cont, date: a.since };
+    if (idx >= STG.approval.i) a.evaluation = a.stage === 'declined' ? { rec: 'decline', reason: a.declineReason } : { rec: 'approve', amount: o.approved || a.req, conditions: '', by: 'Commission chair' };
+    if (o.mgmt) a.approvals.management = { date: '2027-04-13' };
+    if (idx >= STG.agreement.i && a.stage !== 'declined') a.approvals = { management: { date: a.since }, treasurer: { date: a.since } };
+    if (o.days) a.decided = { date: addWD(a.submitted, o.days), days: o.days, outcome: a.stage === 'declined' ? 'declined' : 'approved' };
+    if (o.approved) { a.approved = o.approved; a.payments = payPlan(o.approved, o.t1, o.t2); }
+    if (idx >= STG.payment.i && a.stage !== 'declined') {
+      a.signed = { by: 'President', date: a.since };
+      a.bank = { holder: FEDS[a.fed].name, bankName: 'Mock National Bank', iban: 'XX00 1234 5678 9012 3456', swift: 'MOCKXX00', letter: 'bank-confirmation.pdf', verified: a.stage !== 'payment' };
+    }
+    if (a.stage === 'closed') { a.report.status = 'approved'; a.report.summary = 'Programme delivered as planned. Full results, photos and spending are in the report.'; a.published = true; }
+    genHistory(a);
+    return a;
+  });
+}
+
+/* ---------- state ---------- */
+let state;
+function fresh() { return { app: 'portal', signedIn: false, pview: 'signin', role: 'secretariat', fview: 'grants', cont: 'All', apps: seed(), wiz: null, form: {}, demoId: null, modal: null }; }
+state = fresh();
+const byId = id => state.apps.find(a => a.id === id);
+const fedName = c => FEDS[c].name;
+const total = a => a.budget.reduce((s, l) => s + (+l.amt || 0), 0);
+function used2027(fed) { return state.apps.filter(a => a.fed === fed && a.season === 2027).length; }
+function log(a, who, what) { a.history.push({ d: TODAY, who, what }); }
+function move(a, stage, who, what) { a.stage = stage; a.since = TODAY; const st = STG[stage]; a.due = st.sla ? addWD(TODAY, st.sla) : null; log(a, who, what); }
+function canAct(r, a) {
+  switch (a.stage) {
+    case 'pitch': case 'check': return r === 'secretariat';
+    case 'councillor': return r === 'councillor' && a.cont === ROLES.councillor.cont;
+    case 'commission': return r === 'chair' || r === 'coordinator';
+    case 'approval': return (r === 'management' && !a.approvals.management) || (r === 'treasurer' && !a.approvals.treasurer);
+    case 'payment': return r === 'accounting';
+    case 'report': return r === 'coordinator';
+    default: return false;
+  }
+}
+function chip(kind, text) { return `<span class="chip ${kind}"><span class="d"></span>${esc(text)}</span>`; }
+function slaChip(a) {
+  if (!STG[a.stage].sla || !a.due) return '';
+  if (TODAY > a.due) return chip('bad', 'Overdue ' + wdBetween(a.due, TODAY) + ' d');
+  if (TODAY === a.due) return chip('warn', 'Due today');
+  return chip('good', 'Due ' + fmtS(a.due));
+}
+function stageChip(a) {
+  if (a.stage === 'closed') return chip('good', 'Closed');
+  if (a.stage === 'declined') return chip('bad', 'Declined');
+  return chip('info', STG[a.stage].label);
+}
+
+/* ---------- demo guide ---------- */
+function openF(role, id) { state.app = 'fms'; state.role = role; state.fview = 'app:' + id; state.form = {}; }
+function openP(id) { state.app = 'portal'; state.signedIn = true; state.pview = 'app:' + id; state.form = {}; }
+function guide() {
+  const a = state.demoId && byId(state.demoId);
+  if (!a && !state.signedIn) return { n: 1, text: 'A federation officer signs in to the Federation Portal with ChessID.', go: () => { state.app = 'portal'; state.pview = 'signin'; } };
+  if (!a) return { n: 2, text: 'The federation applies for a grant: Grants → New application.', go: () => startWizard() };
+  switch (a.stage) {
+    case 'councillor': return { n: 3, text: 'Switch to FMS as Councillor · Africa and score ' + a.id + '.', go: () => openF('councillor', a.id) };
+    case 'commission': return { n: 4, text: 'As Commission chair, set the grant amount and recommend ' + a.id + '.', go: () => openF('chair', a.id) };
+    case 'approval': return a.approvals.management
+      ? { n: 5, text: 'As Treasurer, approve ' + a.id + '. Management has already approved.', go: () => openF('treasurer', a.id) }
+      : { n: 5, text: 'As Management, approve ' + a.id + '. The Treasurer approves in parallel.', go: () => openF('management', a.id) };
+    case 'agreement': return { n: 6, text: 'Back in the Federation Portal: read the decision, sign the agreement, add bank details.', go: () => openP(a.id) };
+    case 'payment': return { n: 7, text: 'As Accounting, verify the bank details and pay tranche 1.', go: () => openF('accounting', a.id) };
+    case 'project': return { n: 8, text: 'In the Federation Portal, submit the final report for ' + a.id + '.', go: () => openP(a.id) };
+    case 'report': return { n: 9, text: 'As Grants coordinator, approve the report and publish the results.', go: () => openF('coordinator', a.id) };
+    case 'closed': return { n: 10, text: a.id + ' went from application to published result. The FMS overview shows the updated numbers.', go: () => { state.app = 'fms'; state.role = 'management'; state.fview = 'dashboard'; } };
+    default: return { n: 10, text: a.id + ' was declined. Reset the demo to run the full path again.', go: () => openP(a.id) };
+  }
+}
+
+/* ---------- chrome ---------- */
+function prodBtn(k, label, sub) { return `<button type="button" data-act="go" data-arg="${k}" aria-pressed="${state.app === k}">${label}${sub ? `<small>${sub}</small>` : ''}</button>`; }
+function renderChrome() {
+  $('#chrome').innerHTML = `<div class="chrome-in">
+    <span class="mark"><span class="mark-k">FIDE</span><span class="mark-t">Prototype · mock data</span></span>
+    <nav class="prod" aria-label="Part of the system">${prodBtn('fms', 'Management System', 'internal')}${prodBtn('portal', 'Federation Portal', 'external')}${prodBtn('arch', 'Architecture', '')}</nav>
+    <div class="chrome-r">
+      ${state.app === 'fms' ? `<label class="rolepick" for="role-select">Acting as <select id="role-select">${Object.entries(ROLES).map(([k, r]) => `<option value="${k}"${k === state.role ? ' selected' : ''}>${r.label}</option>`).join('')}</select></label>` : ''}
+      <span class="today mono">Demo date ${fmt(TODAY)}</span>
+      <button type="button" class="cbtn" data-act="reset">Reset demo</button>
+    </div></div>`;
+}
+function renderGuide() {
+  const g = guide();
+  $('#guide').innerHTML = `<div class="guide-in"><span class="g-step mono">Demo ${g.n} / 10</span><span class="g-bar" aria-hidden="true"><i style="width:${g.n * 10}%"></i></span><p class="g-text">${esc(g.text)}</p><button type="button" class="btn small ghost" data-act="guide">Show me</button></div>`;
+}
+
+/* ---------- FMS ---------- */
+function renderFMS() {
+  const v = state.fview;
+  const tasks = state.apps.filter(a => canAct(state.role, a)).length;
+  const nav = [['dashboard', 'Overview'], ['grants', 'Grants · PDC', tasks], ['federations', 'Federations'], ['stub:dues', 'Membership & dues', 0, 'P2'], ['stub:events', 'Events & sanctioning', 0, 'P2'], ['stub:ratings', 'Ratings & titles', 0, 'P3'], ['stub:finance', 'Finance', 0, 'P3'], ['stub:docs', 'Documents']];
+  let body;
+  if (v === 'dashboard') body = fDash();
+  else if (v === 'grants') body = fGrants();
+  else if (v.startsWith('app:')) body = fApp(byId(v.slice(4)));
+  else if (v === 'federations') body = fFeds();
+  else body = stub(v.slice(5));
+  const on = k => v === k || (k === 'grants' && v.startsWith('app:'));
+  return `<div class="fms"><aside class="side">
+    <div class="side-h"><b>FIDE Management System</b><span>Back office</span></div>
+    <nav class="snav" aria-label="Modules">${nav.map(([k, l, c, ph]) => `<button type="button" class="snav-i${on(k) ? ' on' : ''}" data-act="fv" data-arg="${k}">${l}${c ? `<span class="badge">${c}</span>` : ''}${ph ? `<span class="soon">${ph}</span>` : ''}</button>`).join('')}</nav>
+    <div class="side-f"><span class="avatar">${ROLES[state.role].short}</span><span>${ROLES[state.role].label}</span></div>
+  </aside><main class="fmain">${body}</main></div>`;
+}
+function fDash() {
+  const s27 = state.apps.filter(a => a.season === 2027);
+  const decided = s27.filter(a => a.decided);
+  const onTime = decided.filter(a => a.decided.days <= 10).length;
+  const pct = decided.length ? Math.round(onTime * 100 / decided.length) : 0;
+  const avg = decided.length ? (decided.reduce((s, a) => s + a.decided.days, 0) / decided.length).toFixed(1) : '—';
+  const live = state.apps.filter(a => STG[a.stage].sla && a.due);
+  const late = live.filter(a => TODAY > a.due), today = live.filter(a => TODAY === a.due);
+  const approvedSum = s27.filter(a => a.approved).reduce((s, a) => s + a.approved, 0);
+  const paidSum = s27.flatMap(a => a.payments).filter(p => p.status === 'paid').reduce((s, p) => s + p.amt, 0);
+  const attention = [...late, ...today].sort((x, y) => x.due < y.due ? -1 : 1);
+  const per = ENVELOPE / CONTS.length;
+  const reports = state.apps.filter(a => a.stage === 'project' && a.report.due).sort((x, y) => x.report.due < y.report.due ? -1 : 1);
+  return `<div class="phead-row"><div><p class="eyebrow">Overview · season 2027</p><h1>Grants at a glance</h1></div><span class="muted small">Intake 1 Mar – 31 Oct 2027 · envelope ${usd(ENVELOPE)} (mock)</span></div>
+  <div class="kpis">
+    <div class="card kpi"><span class="eyebrow">Decided in ≤ 10 working days</span><span class="v">${pct}%</span><span class="s">${onTime} of ${decided.length} decisions · target 90%</span></div>
+    <div class="card kpi"><span class="eyebrow">Average time to decision</span><span class="v">${avg}</span><span class="s">working days from full application</span></div>
+    <div class="card kpi"><span class="eyebrow">Overdue right now</span><span class="v">${late.length}</span><span class="s">${today.length} more due today</span></div>
+    <div class="card kpi"><span class="eyebrow">Approved</span><span class="v">${usd(approvedSum)}</span><span class="s">${Math.round(approvedSum * 100 / ENVELOPE)}% of the envelope</span></div>
+    <div class="card kpi"><span class="eyebrow">Paid out</span><span class="v">${usd(paidSum)}</span><span class="s">tranches released by Accounting</span></div>
+  </div>
+  <div class="two">
+    <section class="card pad stack"><div class="spread"><h2>Needs attention</h2><span class="muted small">overdue or due today</span></div>
+      ${attention.length ? `<div class="list">${attention.map(a => `<div class="li"><div class="t"><b>${a.id} · ${esc(a.title)}</b><span>${STG[a.stage].label} · ${STG[a.stage].owner}</span></div><div class="row">${slaChip(a)}<button type="button" class="btn small ghost" data-act="fv" data-arg="app:${a.id}">Open</button></div></div>`).join('')}</div>` : '<p class="muted">Nothing overdue.</p>'}
+    </section>
+    <section class="card pad stack"><div class="spread"><h2>Budget by continent</h2><div class="legend"><span><i style="background:var(--line-2)"></i>Requested</span><span><i style="background:var(--accent)"></i>Approved</span></div></div>
+      <div class="bars">${CONTS.map(c => {
+        const xs = s27.filter(a => a.cont === c && a.stage !== 'pitch');
+        const rq = xs.reduce((s, a) => s + a.requested, 0), ap = xs.reduce((s, a) => s + (a.approved || 0), 0);
+        return `<div class="barrow"><div class="lbl"><b>${c}</b><span class="muted mono">${usd(ap)} of ${usd(per)}</span></div><div class="bar" role="img" aria-label="${c}: requested ${usd(rq)}, approved ${usd(ap)}"><i class="req" style="width:${Math.min(100, rq * 100 / per)}%"></i><i class="app" style="width:${Math.min(100, ap * 100 / per)}%"></i></div></div>`;
+      }).join('')}</div>
+    </section>
+  </div>
+  <section class="card pad stack"><div class="spread"><h2>Final reports</h2><span class="muted small">reminders go out 14 days before the due date</span></div>
+    <div class="list">${reports.map(a => { const dl = wdBetween(TODAY, a.report.due); return `<div class="li"><div class="t"><b>${a.id} · ${esc(fedName(a.fed))}</b><span>${esc(a.title)}</span></div><div class="row">${chip(dl <= 35 ? 'warn' : 'good', 'Due ' + fmt(a.report.due))}</div></div>`; }).join('')}
+      <div class="li"><div class="t"><b>PDC-2026-019 · ${fedName('TLO')}</b><span>Blocks new applications from this federation</span></div><div class="row">${chip('bad', 'Overdue since 15 Feb 2027')}</div></div>
+    </div>
+  </section>`;
+}
+function fGrants() {
+  const mine = state.apps.filter(a => canAct(state.role, a));
+  const vis = state.apps.filter(a => state.cont === 'All' || a.cont === state.cont);
+  return `<div class="phead-row"><div><p class="eyebrow">Grants · PDC</p><h1>Applications, season 2027</h1></div>
+    <div class="filters" role="group" aria-label="Continent">${['All', ...CONTS].map(c => `<button type="button" class="fpill" data-act="cont" data-arg="${c}" aria-pressed="${state.cont === c}">${c}</button>`).join('')}</div></div>
+  <section class="card pad stack"><div class="spread"><h2>Waiting for you · ${ROLES[state.role].label}</h2><span class="muted small">${mine.length} ${mine.length === 1 ? 'application' : 'applications'}</span></div>
+    ${mine.length ? `<div class="list">${mine.map(a => `<div class="li"><div class="t"><b>${a.id} · ${esc(a.title)}</b><span>${esc(fedName(a.fed))} · ${a.cont} · ${STG[a.stage].label} · ${usd(a.requested)}</span></div><div class="row">${slaChip(a)}<button type="button" class="btn small primary" data-act="fv" data-arg="app:${a.id}">Open</button></div></div>`).join('')}</div>`
+      : `<p class="muted">Nothing is waiting for this role. ${state.role === 'councillor' ? 'Councillors only see applications from their own continent.' : 'Switch role in the top bar to see other queues.'}</p>`}
+  </section>
+  <section class="stack"><div class="spread"><h2>Pipeline</h2><span class="muted small">Each card shows the deadline of its current step</span></div>
+    <div class="board">${COLS.map(c => { const xs = vis.filter(a => STG[a.stage].col === c); return `<div class="col"><div class="col-h"><span>${c}</span><span class="mono">${xs.length}</span></div>${xs.map(a => `<button type="button" class="kcard${canAct(state.role, a) ? ' mine' : ''}" data-act="fv" data-arg="app:${a.id}"><span class="id mono">${a.id}</span><b>${esc(a.title)}</b><span class="f">${esc(fedName(a.fed))}</span><span class="ft"><span class="mono small">${usd(a.approved || a.requested)}</span>${a.stage === 'declined' ? chip('bad', 'Declined') : slaChip(a)}</span></button>`).join('')}</div>`; }).join('')}</div>
+  </section>`;
+}
+function checks(a) {
+  const n = state.apps.filter(x => x.fed === a.fed && x.season === a.season).length;
+  const ro = FEDS[a.fed].reportOverdue;
+  return [
+    [true, 'Inside intake window', '1 Mar – 31 Oct ' + a.season],
+    [n <= 2, 'Project limit', n + ' of 2 projects this season'],
+    [true, 'Membership dues ' + a.season, 'Paid · read from payments.fide.com'],
+    [!ro, 'Final reports', ro || 'No overdue reports'],
+    [true, 'Budget adds up', usd(total(a)) + ' total, ' + usd(a.requested) + ' requested'],
+  ];
+}
+function fTracker(a) {
+  const ci = a.stage === 'declined' ? TRACK.indexOf('approval') : TRACK.indexOf(a.stage);
+  return `<ol class="track">${TRACK.map((k, i) => {
+    let cls = i < ci ? 'done' : i === ci ? 'cur' : 'todo';
+    if (a.stage === 'closed' && i === ci) cls = 'done';
+    if (a.stage === 'declined' && i === ci) cls = 'bad';
+    const st = STG[k];
+    const sub = cls === 'bad' ? 'Declined' : (cls === 'cur' ? st.owner + (a.due ? ' · due ' + fmtS(a.due) : '') : st.owner + (st.sla ? ' · ' + st.sla + ' working ' + (st.sla === 1 ? 'day' : 'days') : ''));
+    return `<li class="${cls}"><span class="tdot">${cls === 'done' ? '✓' : ''}</span><div><b>${st.label}</b><small>${esc(sub)}</small></div></li>`;
+  }).join('')}</ol>`;
+}
+function budgetTable(a) {
+  return `<div class="tscroll"><table><thead><tr><th>Budget line</th><th class="num">Amount</th></tr></thead><tbody>
+    ${a.budget.map(l => `<tr><td>${esc(l.cat)}</td><td class="num mono">${usd(l.amt)}</td></tr>`).join('')}
+    <tr><td class="muted">Federation contribution</td><td class="num mono muted">− ${usd(a.cofin.fed)}</td></tr>
+    ${a.cofin.other ? `<tr><td class="muted">Other sponsors</td><td class="num mono muted">− ${usd(a.cofin.other)}</td></tr>` : ''}
+    <tr class="total"><td>Requested from FIDE</td><td class="num mono">${usd(a.requested)}</td></tr></tbody></table></div>`;
+}
+function scoreGrid(r) { return `<div class="scoregrid">${CRIT.map(([k, l]) => `<div><small>${l}</small><b>${r.scores[k]}</b></div>`).join('')}</div>`; }
+function fApp(a) {
+  if (!a) return '<p>Application not found.</p>';
+  return `<div><button type="button" class="linkbtn" data-act="fv" data-arg="grants">← All applications</button></div>
+  <div class="phead-row"><div class="stack" style="gap:6px"><p class="eyebrow mono">${a.id} · ${a.track === 'Education' ? 'Education programme' : 'General development'}</p><h1>${esc(a.title)}</h1><p class="muted">${esc(fedName(a.fed))} · ${a.cont} · requested ${usd(a.requested)}</p></div><div class="row">${stageChip(a)}${slaChip(a)}</div></div>
+  <div class="detail"><div class="stack">
+    ${fAction(a)}
+    <section class="card pad stack"><h2>Project</h2><p>${esc(a.summary)}</p>
+      <dl class="kv"><div><dt>Dates</dt><dd>${fmtS(a.start)} – ${fmt(a.end)}</dd></div><div><dt>Beneficiaries</dt><dd>${esc(a.benef)}</dd></div><div><dt>Pitch</dt><dd>${a.pitch ? esc(a.pitch.slot) + ' · ' + esc(a.pitch.with) : 'Held'}</dd></div></dl>
+      ${budgetTable(a)}</section>
+    ${a.review ? `<section class="card pad stack"><div class="spread"><h2>Councillor review</h2><span class="mono"><b>${a.review.total}</b> / 25</span></div>${scoreGrid(a.review)}${a.review.comment ? `<p class="muted">“${esc(a.review.comment)}”</p>` : ''}<p class="small muted">${esc(a.review.by)} · no conflict of interest declared</p></section>` : ''}
+    ${a.evaluation ? `<section class="card pad stack"><h2>Commission evaluation</h2>${a.evaluation.rec === 'approve' ? `<p>Recommended for approval: <b class="mono">${usd(a.evaluation.amount)}</b></p>${a.evaluation.conditions ? `<p class="muted">Conditions: ${esc(a.evaluation.conditions)}</p>` : ''}` : `<p>Declined. ${esc(a.evaluation.reason)}</p>`}</section>` : ''}
+    ${a.payments.length ? `<section class="card pad stack"><h2>Payments</h2><div class="tscroll"><table><thead><tr><th>Tranche</th><th class="num">Amount</th><th>Status</th></tr></thead><tbody>${a.payments.map(p => `<tr><td>${esc(p.label)}</td><td class="num mono">${usd(p.amt)}</td><td>${p.status === 'paid' ? chip('good', 'Paid ' + fmtS(p.date)) : chip('', p.status)}</td></tr>`).join('')}</tbody></table></div></section>` : ''}
+  </div><div class="stack">
+    <section class="card pad stack"><h2>Path</h2>${fTracker(a)}</section>
+    <section class="card pad stack"><h2>Automatic checks</h2><ul class="checks">${checks(a).map(([ok, t, s]) => `<li><span class="${ok ? 'ok' : 'no'}" aria-label="${ok ? 'Passed' : 'Failed'}">${ok ? '✓' : '✕'}</span><span>${esc(t)}<small>${esc(s)}</small></span></li>`).join('')}</ul></section>
+    <section class="card pad stack"><h2>Audit log</h2><ul class="log">${a.history.slice().reverse().map(h => `<li><time>${fmtS(h.d)}</time><span><b>${esc(h.who)}</b> · ${esc(h.what)}</span></li>`).join('')}</ul></section>
+  </div></div>`;
+}
+function waitingBox(a) {
+  if (a.stage === 'closed') return `<section class="card pad waiting">${chip('good', 'Closed')}<p>Report approved, final tranche released, results published on the PDC website.</p></section>`;
+  if (a.stage === 'declined') return `<section class="card pad waiting">${chip('bad', 'Declined')}<p>${esc(a.declineReason || '')}</p></section>`;
+  let who = STG[a.stage].owner;
+  if (a.stage === 'approval') who = !a.approvals.management && !a.approvals.treasurer ? 'Management and Treasurer' : !a.approvals.management ? 'Management' : 'Treasurer';
+  if (a.stage === 'councillor') who = 'Councillor · ' + a.cont;
+  return `<section class="card pad waiting"><span class="avatar">…</span><div><b>Waiting for ${esc(who)}</b><p class="muted small">${STG[a.stage].label}${a.due ? ' · due ' + fmt(a.due) : ''}. Switch role in the top bar to act as them.</p></div></section>`;
+}
+function errLine() { return state.form.err ? `<p class="err" role="alert">${esc(state.form.err)}</p>` : ''; }
+function fAction(a) {
+  if (!canAct(state.role, a)) return waitingBox(a);
+  const f = state.form;
+  const head = (t, s) => `<div class="spread"><h2>${t}</h2><span class="row">${slaChip(a)}</span></div>${s ? `<p class="muted">${s}</p>` : ''}`;
+  switch (a.stage) {
+    case 'pitch': return `<section class="card pad stack act">${head('Pitch', 'Pitch booked for ' + esc(a.pitch.slot) + ' with ' + esc(a.pitch.with) + '.')}<div class="row"><button type="button" class="btn primary" data-act="pitchHeld" data-arg="${a.id}">Pitch held, invite full application</button></div></section>`;
+    case 'check': return `<section class="card pad stack act">${head('Eligibility check needs a decision', 'All other checks passed automatically.')}
+      <div class="note">${esc(a.flags.join('; '))}</div>
+      <label class="field"><span>Note for the audit log (required to override)</span><textarea id="f-note" data-f="note" rows="2">${esc(f.note || '')}</textarea></label>${errLine()}
+      <div class="row"><button type="button" class="btn primary" data-act="hold" data-arg="${a.id}">Hold and ask for the report</button><button type="button" class="btn ghost" data-act="override" data-arg="${a.id}">Override and route to councillor</button></div></section>`;
+    case 'councillor': {
+      f.scores = f.scores || {};
+      const t = CRIT.reduce((s, [k]) => s + (f.scores[k] || 0), 0);
+      return `<section class="card pad stack act">${head('Your review', 'Score each criterion from 1 (weak) to 5 (strong). Your score goes to the commission.')}
+        <div class="crit">${CRIT.map(([k, l]) => `<div class="crow"><span>${l}</span><div class="pills" role="group" aria-label="${l}">${[1, 2, 3, 4, 5].map(n => `<button type="button" class="pill${f.scores[k] === n ? ' on' : ''}" data-act="score" data-arg="${k}:${n}" aria-pressed="${f.scores[k] === n}">${n}</button>`).join('')}</div></div>`).join('')}</div>
+        <div class="spread"><span class="muted">Total</span><b class="mono">${t} / 25</b></div>
+        <label class="field"><span>Comment for the commission</span><textarea id="f-comment" data-f="comment" rows="2">${esc(f.comment || '')}</textarea></label>
+        <label class="check"><input type="checkbox" id="f-coi" data-f="coi"${f.coi ? ' checked' : ''}> I have no conflict of interest with ${esc(fedName(a.fed))}.</label>${errLine()}
+        <div class="row"><button type="button" class="btn primary" data-act="review" data-arg="${a.id}">Submit review</button></div></section>`;
+    }
+    case 'commission': {
+      if (f.amount === undefined) f.amount = String(a.requested);
+      return `<section class="card pad stack act">${head('Commission evaluation', 'Councillor score: ' + a.review.total + ' / 25. Set the amount and recommend. The decision then goes to Management and the Treasurer at the same time.')}
+        <div class="pair"><label class="field"><span>Grant amount, USD</span><input id="f-amount" data-f="amount" inputmode="numeric" value="${esc(f.amount)}"></label><label class="field"><span>Reason if declined</span><input id="f-reason" data-f="reason" value="${esc(f.reason || '')}" placeholder="Shown to the federation"></label></div>
+        <label class="field"><span>Conditions (optional)</span><textarea id="f-cond" data-f="conditions" rows="2" placeholder="For example: share the school list before tranche 1">${esc(f.conditions || '')}</textarea></label>${errLine()}
+        <div class="row"><button type="button" class="btn primary" data-act="evalOk" data-arg="${a.id}">Recommend approval</button><button type="button" class="btn danger" data-act="evalNo" data-arg="${a.id}">Decline</button></div></section>`;
+    }
+    case 'approval': {
+      const other = state.role === 'management' ? 'treasurer' : 'management';
+      return `<section class="card pad stack act">${head('Approval', 'Commission recommends ' + usd(a.evaluation.amount) + '. Councillor score ' + a.review.total + ' / 25.')}
+        <dl class="kv"><div><dt>Management</dt><dd>${a.approvals.management ? chip('good', 'Approved') : chip('warn', 'Pending')}</dd></div><div><dt>Treasurer</dt><dd>${a.approvals.treasurer ? chip('good', 'Approved') : chip('warn', 'Pending')}</dd></div></dl>
+        <label class="field"><span>Comment (required to return)</span><textarea id="f-ret" data-f="ret" rows="2">${esc(f.ret || '')}</textarea></label>${errLine()}
+        <div class="row"><button type="button" class="btn primary" data-act="approve" data-arg="${a.id}">Approve ${usd(a.evaluation.amount)}</button><button type="button" class="btn ghost" data-act="returnC" data-arg="${a.id}">Return to commission</button></div>
+        <p class="small muted">${a.approvals[other] ? 'The ' + ROLES[other].label.toLowerCase() + ' has approved. Your approval sends the decision.' : 'The ' + ROLES[other].label.toLowerCase() + ' approves in parallel. The decision goes out when both have approved.'}</p></section>`;
+    }
+    case 'payment': {
+      const match = a.bank.holder.trim().toLowerCase() === fedName(a.fed).toLowerCase();
+      return `<section class="card pad stack act">${head('Bank check and tranche 1', 'Bank details arrive only after the agreement is signed.')}
+        <dl class="kv"><div><dt>Account holder</dt><dd>${esc(a.bank.holder)}</dd></div><div><dt>Bank</dt><dd>${esc(a.bank.bankName)}</dd></div><div><dt>IBAN</dt><dd class="mono">${esc(a.bank.iban)}</dd></div><div><dt>SWIFT</dt><dd class="mono">${esc(a.bank.swift)}</dd></div></dl>
+        <ul class="checks"><li><span class="${match ? 'ok' : 'no'}">${match ? '✓' : '✕'}</span><span>Holder matches the federation name<small>${match ? 'Same as the federation record' : 'Different from the federation record'}</small></span></li><li><span class="ok">✓</span><span>Confirmation letter attached<small>${esc(a.bank.letter)}</small></span></li><li><span class="ok">✓</span><span>Agreement signed<small>${esc(a.signed.by)} · ${fmt(a.signed.date)}</small></span></li></ul>
+        <label class="check"><input type="checkbox" id="f-cb" data-f="callback"${f.callback ? ' checked' : ''}> I confirmed these details by calling the federation’s registered contact.</label>${errLine()}
+        <div class="row"><button type="button" class="btn primary" data-act="pay" data-arg="${a.id}">Verify and pay ${usd(a.payments[0].amt)}</button></div></section>`;
+    }
+    case 'report': {
+      const r = a.report;
+      return `<section class="card pad stack act">${head('Final report', 'Submitted ' + fmt(r.date) + '. Approving releases tranche 2 and publishes the results.')}
+        <p>${esc(r.summary)}</p>
+        <dl class="kv"><div><dt>Participants</dt><dd>${esc(r.participants)}</dd></div><div><dt>Spent</dt><dd class="mono">${usd(r.spent)}</dd></div><div><dt>Photos</dt><dd>${r.photos} attached</dd></div><div><dt>Publication</dt><dd>${r.consent ? 'Federation agrees' : 'Text only'}</dd></div></dl>
+        <label class="field"><span>Comment (required to request changes)</span><textarea id="f-rc" data-f="rc" rows="2">${esc(f.rc || '')}</textarea></label>${errLine()}
+        <div class="row"><button type="button" class="btn primary" data-act="rApprove" data-arg="${a.id}">Approve and publish</button><button type="button" class="btn ghost" data-act="rChanges" data-arg="${a.id}">Request changes</button></div></section>`;
+    }
+  }
+  return waitingBox(a);
+}
+function fFeds() {
+  return `<div class="phead-row"><div><p class="eyebrow">Federations</p><h1>One record per federation</h1></div><span class="muted small">Every module reads and writes the same record</span></div>
+  <div class="card"><div class="tscroll" style="border:0"><table><thead><tr><th>Code</th><th>Federation</th><th>Continent</th><th>Dues 2027</th><th class="num">Grants 2027</th><th>Reports</th></tr></thead><tbody>
+  ${Object.entries(FEDS).map(([c, f]) => `<tr><td class="mono">${c}</td><td>${esc(f.name)}</td><td>${f.cont}</td><td>${chip('good', 'Paid')}</td><td class="num mono">${used2027(c)} / 2</td><td>${f.reportOverdue ? chip('bad', '1 overdue') : chip('good', 'Up to date')}</td></tr>`).join('')}
+  </tbody></table></div></div>`;
+}
+function stub(k) {
+  const s = STUBS[k];
+  if (!s) return '<p>Not found.</p>';
+  return `<section class="card pad stack stub"><p class="eyebrow">Planned module · ${esc(s.ph)}</p><h1>${esc(s.t)}</h1><p>${esc(s.d)}</p><p class="muted">Uses the same federation record, roles, notifications and audit log as Grants, so the second module costs less than the first.</p></section>`;
+}
+
+/* ---------- Federation Portal ---------- */
+function renderPortal() {
+  if (!state.signedIn) return `<div class="portal"><div class="signin"><section class="card signcard">
+    <div class="stack" style="gap:6px"><p class="eyebrow">FIDE</p><h1>Federation Portal</h1><p class="muted">Grants, dues, events and players for your national federation, in one place.</p></div>
+    <button type="button" class="cidbtn" data-act="signin">Sign in with <span class="cid">Chess<em>ID</em></span></button>
+    <p class="small muted">Officers use their personal ChessID. Your federation’s president decides who has access and what they can do. Prototype: no password needed.</p>
+  </section></div></div>`;
+  const v = state.pview;
+  const nav = [['overview', 'Overview'], ['grants', 'Grants'], ['stub:pdues', 'Membership & dues'], ['stub:pevents', 'Events'], ['stub:pplayers', 'Players & ratings'], ['stub:pofficers', 'Officers & access']];
+  let body;
+  if (v === 'overview') body = pOverview();
+  else if (v === 'grants') body = pGrants();
+  else if (v === 'apply') body = pWizard();
+  else if (v.startsWith('app:')) body = pApp(byId(v.slice(4)));
+  else body = stub(v.slice(5));
+  const on = k => v === k || (k === 'grants' && (v === 'apply' || v.startsWith('app:')));
+  return `<div class="portal"><header class="phead"><div class="phead-in">
+    <span class="pbrand">Federation <em>Portal</em></span>
+    <nav class="pnav" aria-label="Portal">${nav.map(([k, l]) => `<button type="button" class="${on(k) ? 'on' : ''}" data-act="pv" data-arg="${k}">${l}</button>`).join('')}</nav>
+    <span class="pwho"><span class="avatar">AO</span><span><b>Amara Okonkwo</b><small>General secretary · <span class="cid">Chess<em>ID</em></span> verified</small></span></span>
+  </div></header><main class="pmain">${body}</main></div>`;
+}
+function myApps() { return state.apps.filter(a => a.fed === MYFED); }
+function pTasks() {
+  const t = [];
+  myApps().forEach(a => {
+    if (a.stage === 'agreement' && !a.signed) t.push([a, 'Sign the grant agreement', 'Approved: ' + usd(a.approved)]);
+    else if (a.stage === 'agreement') t.push([a, 'Add bank details', 'Needed for the first payment']);
+    else if (a.stage === 'project') t.push([a, 'Submit the final report', 'Due ' + fmt(a.report.due)]);
+  });
+  return t;
+}
+function pStatus(a) {
+  switch (a.stage) {
+    case 'pitch': return chip('info', 'Pitch booked');
+    case 'full': return chip('warn', 'Complete your application');
+    case 'check': case 'councillor': case 'commission': case 'approval': return chip('info', 'Under review');
+    case 'agreement': return chip('warn', a.signed ? 'Add bank details' : 'Approved · sign agreement');
+    case 'payment': return chip('info', 'Payment in progress');
+    case 'project': return chip('info', 'Report due ' + fmtS(a.report.due));
+    case 'report': return chip('info', 'Report under review');
+    case 'closed': return chip('good', 'Completed');
+    default: return chip('bad', 'Declined');
+  }
+}
+function progress(a) { const i = TRACK.indexOf(a.stage); if (a.stage === 'declined') return 100; if (i < 0) return 4; return Math.round((i + (a.stage === 'closed' ? 1 : .5)) * 100 / TRACK.length); }
+function pOverview() {
+  const used = used2027(MYFED), tasks = pTasks();
+  return `<section class="fedcard"><div class="spread" style="position:relative;z-index:1"><div class="stack" style="gap:4px"><span class="code">KSB · AFRICA</span><h1>${fedName(MYFED)}</h1></div></div>
+    <div class="fmeta">${chip('good', 'Dues 2027 paid')}${chip('good', 'Reports up to date')}${chip('', '4 officers with access')}</div></section>
+  <section class="card pad season"><div><p class="eyebrow">Grant season 2027 · open until 31 Oct</p><h2>${used} of 2 project slots used</h2><div class="slots" aria-hidden="true"><i class="${used > 0 ? 'used' : ''}"></i><i class="${used > 1 ? 'used' : ''}"></i></div></div>
+    <button type="button" class="btn primary" data-act="newApp"${used >= 2 ? ' disabled' : ''}>New application</button></section>
+  <section class="card pad stack"><h2>Needs your action</h2>${tasks.length ? `<div class="list">${tasks.map(([a, t, s]) => `<div class="li"><div class="t"><b>${t}</b><span>${a.id} · ${esc(a.title)} · ${s}</span></div><button type="button" class="btn small primary" data-act="pv" data-arg="app:${a.id}">Open</button></div>`).join('')}</div>` : '<p class="muted">Nothing right now. We will email you when something needs your action.</p>'}</section>
+  <section class="stack"><div class="spread"><h2>Your applications</h2><button type="button" class="linkbtn" data-act="pv" data-arg="grants">All grants</button></div>${myApps().slice(0, 3).map(pRow).join('')}</section>`;
+}
+function pRow(a) {
+  return `<div class="card prow"><div class="t"><span class="mono small muted">${a.id} · season ${a.season}</span><b>${esc(a.title)}</b><span class="small muted">${usd(a.approved || a.requested)} · ${a.track === 'Education' ? 'Education programme' : 'General development'}</span></div>
+    <div class="stack" style="gap:6px">${pStatus(a)}<div class="prog" aria-hidden="true"><i style="width:${progress(a)}%"></i></div></div>
+    <button type="button" class="btn small ghost" data-act="pv" data-arg="app:${a.id}">Open</button></div>`;
+}
+function pGrants() {
+  const used = used2027(MYFED);
+  return `<div class="phead-row"><div><p class="eyebrow">Grants · PDC</p><h1>Development grants</h1><p class="muted">Up to 2 projects per season. Decisions within 10 working days of a complete application.</p></div>
+    <button type="button" class="btn primary" data-act="newApp"${used >= 2 ? ' disabled' : ''}>New application</button></div>
+    ${used >= 2 ? '<p class="note">You have used both project slots for season 2027. New applications open again on 1 March 2028.</p>' : ''}
+    <div class="stack">${myApps().map(pRow).join('')}</div>`;
+}
+function startWizard() {
+  state.app = 'portal'; state.signedIn = true; state.pview = 'apply';
+  state.wiz = {
+    step: 1, title: 'Chess in Schools: Coastal Region', track: 'Education', start: '2027-06-01', end: '2027-11-30',
+    summary: 'Weekly chess lessons in 24 public schools of the coastal region, taught by 12 federation coaches, with teacher training and a regional final tournament.',
+    benef: '1,200 pupils, 48 teachers', slot: null,
+    lines: [{ cat: 'Coach fees, 12 coaches for 24 weeks', amt: 6000 }, { cat: 'Chess sets and demo boards', amt: 3600 }, { cat: 'Teacher training workshops', amt: 2400 }, { cat: 'Transport to schools', amt: 1800 }, { cat: 'Regional final tournament', amt: 2200 }],
+    cofinFed: 2000, cofinOther: 1500, declare: false, err: null,
+  };
+}
+function wizTotals(w) { const t = w.lines.reduce((s, l) => s + (+l.amt || 0), 0); return { t, req: t - (+w.cofinFed || 0) - (+w.cofinOther || 0) }; }
+function pWizard() {
+  const w = state.wiz;
+  if (!w) { startWizard(); return pWizard(); }
+  const steps = ['Project', 'Pitch', 'Budget', 'Submit'];
+  const used = used2027(MYFED);
+  let main = '';
+  if (w.step === 1) main = `<section class="card pad stack"><h2>About the project</h2>
+    <label class="field"><span>Project title</span><input id="w-title" data-w="title" value="${esc(w.title)}"></label>
+    <div class="field"><span>Programme</span><div class="radios">
+      <button type="button" class="radio" data-act="track" data-arg="General" aria-pressed="${w.track === 'General'}"><b>General development</b><small>Pitch with the PDC</small></button>
+      <button type="button" class="radio" data-act="track" data-arg="Education" aria-pressed="${w.track === 'Education'}"><b>Education programme</b><small>Pitch with the EDU Commission</small></button></div></div>
+    <div class="pair"><label class="field"><span>Start</span><input id="w-start" type="date" data-w="start" value="${w.start}"></label><label class="field"><span>End</span><input id="w-end" type="date" data-w="end" value="${w.end}"></label></div>
+    <label class="field"><span>What you will do</span><textarea id="w-summary" data-w="summary" rows="3">${esc(w.summary)}</textarea></label>
+    <label class="field"><span>Who benefits</span><input id="w-benef" data-w="benef" value="${esc(w.benef)}"></label></section>`;
+  if (w.step === 2) main = `<section class="card pad stack"><h2>Book your pitch</h2><p class="muted">A 20-minute Zoom call with the ${w.track === 'Education' ? 'EDU Commission' : 'PDC'}. The Zoom link and calendar invite arrive by email.</p>
+    <div class="slotbtns">${SLOTS.map((s, i) => `<button type="button" class="radio" data-act="slot" data-arg="${i}" aria-pressed="${w.slot === i}"><b>${s.t}</b><small>${w.track === 'Education' ? 'EDU Commission' : 'PDC'} · Zoom</small></button>`).join('')}</div>
+    <p class="note">Prototype shortcut: in the live flow the full application opens after the pitch. Here you can continue straight away.</p></section>`;
+  if (w.step === 3) { const tt = wizTotals(w); main = `<section class="card pad stack"><h2>Budget</h2><p class="muted">Enter the full project cost. Bank details are not needed now; we ask for them after approval.</p>
+    <div class="stack" style="gap:8px">${w.lines.map((l, i) => `<div class="bline"><input id="w-cat-${i}" aria-label="Budget line ${i + 1}" data-line="${i}" data-lf="cat" value="${esc(l.cat)}"><input id="w-amt-${i}" class="amt" aria-label="Amount, USD" inputmode="numeric" data-line="${i}" data-lf="amt" value="${esc(l.amt)}"><button type="button" class="iconbtn" data-act="delLine" data-arg="${i}" aria-label="Remove line">×</button></div>`).join('')}</div>
+    <div><button type="button" class="btn small ghost" data-act="addLine">Add a line</button></div>
+    <div class="pair"><label class="field"><span>Federation contribution, USD</span><input id="w-cf" inputmode="numeric" data-w="cofinFed" value="${esc(w.cofinFed)}"></label><label class="field"><span>Other sponsors, USD</span><input id="w-co" inputmode="numeric" data-w="cofinOther" value="${esc(w.cofinOther)}"></label></div>
+    <div class="stack" style="gap:6px"><div class="sumrow"><span class="muted">Project total</span><span class="mono" id="sum-t">${usd(tt.t)}</span></div><div class="sumrow big"><span>Requested from FIDE</span><span class="mono" id="sum-r">${usd(tt.req)}</span></div></div></section>`; }
+  if (w.step === 4) { const tt = wizTotals(w); main = `<section class="card pad stack"><h2>Check and submit</h2>
+    <dl class="kv"><div><dt>Project</dt><dd>${esc(w.title)}</dd></div><div><dt>Programme</dt><dd>${w.track === 'Education' ? 'Education programme' : 'General development'}</dd></div><div><dt>Dates</dt><dd>${fmtS(w.start)} – ${fmt(w.end)}</dd></div><div><dt>Pitch</dt><dd>${w.slot === null ? '—' : esc(SLOTS[w.slot].t)}</dd></div><div><dt>Project total</dt><dd class="mono">${usd(tt.t)}</dd></div><div><dt>Requested</dt><dd class="mono">${usd(tt.req)}</dd></div></dl>
+    <label class="check"><input type="checkbox" id="w-declare" data-w="declare"${w.declare ? ' checked' : ''}> The federation’s president or board has approved this application.</label>
+    <p class="muted small">After you submit, the system checks eligibility and sends the application to the councillor for Africa. You will see every step and its deadline here.</p></section>`; }
+  const side = `<aside class="stack"><section class="card pad stack"><h2>Automatic checks</h2><ul class="checks">
+      <li><span class="ok">✓</span><span>Intake window open<small>1 Mar – 31 Oct 2027</small></span></li>
+      <li><span class="${used < 2 ? 'ok' : 'no'}">${used < 2 ? '✓' : '✕'}</span><span>Project limit<small>This will be project ${used + 1} of 2</small></span></li>
+      <li><span class="ok">✓</span><span>Dues 2027 paid<small>Read from payments.fide.com</small></span></li>
+      <li><span class="ok">✓</span><span>No overdue reports<small>PDC-2027-006 report due 31 May</small></span></li></ul></section>
+    <p class="small muted">Example values are filled in for the demo.</p></aside>`;
+  return `<div><button type="button" class="linkbtn" data-act="pv" data-arg="grants">← Grants</button></div>
+  <div class="phead-row"><div><p class="eyebrow">New application · season 2027</p><h1>Apply for a development grant</h1></div></div>
+  <div class="stepper">${steps.map((s, i) => `<span class="${i + 1 === w.step ? 'on' : i + 1 < w.step ? 'done' : ''}"><i>${i + 1 < w.step ? '✓' : i + 1}</i>${s}</span>`).join('')}</div>
+  <div class="wiz"><div class="stack">${main}${w.err ? `<p class="err" role="alert">${esc(w.err)}</p>` : ''}
+    <div class="row">${w.step > 1 ? `<button type="button" class="btn ghost" data-act="wStep" data-arg="${w.step - 1}">Back</button>` : ''}${w.step < 4 ? `<button type="button" class="btn primary" data-act="wStep" data-arg="${w.step + 1}">Continue</button>` : `<button type="button" class="btn primary" data-act="submitApp">Submit application</button>`}</div></div>${side}</div>`;
+}
+function pTrack(a) {
+  const idx = TRACK.indexOf(a.stage);
+  const st = (doneIf, curIf) => doneIf ? 'done' : curIf ? 'cur' : '';
+  const review = ['check', 'councillor', 'commission', 'approval'];
+  const items = [
+    ['Submitted', fmtS(a.submitted), 'done'],
+    ['Review', review.includes(a.stage) ? STG[a.stage].label : (a.stage === 'declined' ? 'Declined' : ''), a.stage === 'declined' ? 'bad' : st(idx > 3, review.includes(a.stage))],
+    ['Decision and agreement', a.decided ? fmtS(a.decided.date) : '', st(idx > 4, a.stage === 'agreement')],
+    ['First payment', a.payments[0] && a.payments[0].date ? fmtS(a.payments[0].date) : '', st(idx > 5, a.stage === 'payment')],
+    ['Final report', a.report.due ? 'Due ' + fmtS(a.report.due) : '', st(idx > 7, a.stage === 'project' || a.stage === 'report')],
+    ['Published', a.published ? 'On the PDC website' : '', a.stage === 'closed' ? 'done' : ''],
+  ];
+  if (a.stage === 'pitch' || a.stage === 'full') { items[0][2] = 'cur'; items[0][1] = a.stage === 'pitch' ? 'Pitch ' + a.pitch.slot : 'Complete the form'; }
+  return `<ol class="ptrack">${items.map(([l, s, c]) => `<li class="${c}"><i></i><b>${l}</b><span>${esc(s)}</span></li>`).join('')}</ol>`;
+}
+function pNext(a) {
+  const exp = addWD(a.submitted, 10);
+  switch (a.stage) {
+    case 'pitch': return 'Your pitch is booked: ' + a.pitch.slot + ' with the ' + a.pitch.with + '.';
+    case 'check': case 'councillor': case 'commission': case 'approval': return 'Your application is at the step “' + STG[a.stage].label + '”. You will have a decision by ' + fmt(exp) + '.';
+    case 'agreement': return a.signed ? 'Add your bank details so Accounting can make the first payment.' : 'Your grant of ' + usd(a.approved) + ' is approved. Read the decision and sign the agreement.';
+    case 'payment': return 'Accounting is checking your bank details and may call your registered contact. First payment: ' + usd(a.payments[0].amt) + '.';
+    case 'project': return 'Run the project. Your final report is due ' + fmt(a.report.due) + '. The second payment of ' + usd(a.payments[1].amt) + ' follows its approval.';
+    case 'report': return 'Your report is with the grants coordinator. Review takes up to 5 working days.';
+    case 'closed': return 'Project completed. Results are published on the PDC website.';
+    default: return 'Declined. ' + (a.declineReason || '');
+  }
+}
+function pAction(a) {
+  const f = state.form;
+  if (a.stage === 'agreement' && !a.signed) {
+    if (f.signName === undefined) f.signName = 'Amara Okonkwo';
+    return `<section class="card pad stack act"><div class="spread"><h2>Grant agreement</h2><button type="button" class="linkbtn" data-act="letter" data-arg="${a.id}">Read the decision letter</button></div>
+      <p>Grant of <b class="mono">${usd(a.approved)}</b>. 70% is paid after signature and bank check, 30% after the final report is approved. Final report due 30 days after the project ends.</p>
+      <label class="field"><span>Type your full name to sign</span><input id="f-sign" data-f="signName" value="${esc(f.signName)}"></label>
+      <label class="check"><input type="checkbox" id="f-auth" data-f="auth"${f.auth ? ' checked' : ''}> I am authorised to sign for ${esc(fedName(a.fed))}.</label>${errLine()}
+      <div class="row"><button type="button" class="btn primary" data-act="sign" data-arg="${a.id}">Sign agreement</button></div></section>`;
+  }
+  if (a.stage === 'agreement') {
+    const d = { holder: fedName(a.fed), bankName: 'Coastal Commercial Bank', iban: 'KS12 0040 0012 3456 7890 12', swift: 'CCBKKSXX' };
+    Object.keys(d).forEach(k => { if (f[k] === undefined) f[k] = d[k]; });
+    return `<section class="card pad stack act"><h2>Bank details</h2><p class="muted">The account must be in the federation’s name. Accounting confirms the details by phone before the first payment.</p>
+      <div class="pair"><label class="field"><span>Account holder</span><input id="f-holder" data-f="holder" value="${esc(f.holder)}"></label><label class="field"><span>Bank</span><input id="f-bank" data-f="bankName" value="${esc(f.bankName)}"></label>
+      <label class="field"><span>IBAN or account number</span><input id="f-iban" class="mono" data-f="iban" value="${esc(f.iban)}"></label><label class="field"><span>SWIFT / BIC</span><input id="f-swift" class="mono" data-f="swift" value="${esc(f.swift)}"></label></div>
+      <div class="row"><button type="button" class="btn small ghost" data-act="attach">${f.letter ? 'Replace letter' : 'Attach bank confirmation letter'}</button><span class="small muted">${f.letter ? esc(f.letter) + ' attached' : 'On federation letterhead, signed by the president'}</span></div>${errLine()}
+      <div class="row"><button type="button" class="btn primary" data-act="bank" data-arg="${a.id}">Send bank details</button></div></section>`;
+  }
+  if (a.stage === 'project') {
+    if (f.rsum === undefined) f.rsum = a.id === state.demoId ? '24 schools took part. 1,180 pupils had weekly lessons, 46 teachers were trained and 310 pupils played the regional final.' : 'Seminar held for 38 arbiters from 9 regions; 31 passed the exam.';
+    if (f.rpart === undefined) f.rpart = a.id === state.demoId ? '1,180 pupils, 46 teachers' : '38 arbiters';
+    if (f.rspent === undefined) f.rspent = String(total(a));
+    return `<section class="card pad stack act"><h2>Final report</h2><p class="muted">Due ${fmt(a.report.due)}. Approval releases the second payment of ${usd(a.payments[1].amt)}.</p>
+      <label class="field"><span>What happened</span><textarea id="f-rsum" data-f="rsum" rows="3">${esc(f.rsum)}</textarea></label>
+      <div class="pair"><label class="field"><span>Participants</span><input id="f-rpart" data-f="rpart" value="${esc(f.rpart)}"></label><label class="field"><span>Actually spent, USD</span><input id="f-rspent" class="mono" inputmode="numeric" data-f="rspent" value="${esc(f.rspent)}"></label></div>
+      <label class="check"><input type="checkbox" id="f-consent" data-f="consent"${f.consent ? ' checked' : ''}> You may publish this report and its photos on the PDC website.</label>
+      <p class="small muted">Prototype: 3 example photos and the receipts file are attached.</p>${errLine()}
+      <div class="row"><button type="button" class="btn primary" data-act="report" data-arg="${a.id}">Submit report</button></div></section>`;
+  }
+  if (a.stage === 'closed') return `<section class="card pad row"><p class="muted" style="flex:1">This project is published on the PDC website.</p><button type="button" class="btn small ghost" data-act="public" data-arg="${a.id}">See the public page</button></section>`;
+  return '';
+}
+function pApp(a) {
+  if (!a) return '<p>Application not found.</p>';
+  return `<div><button type="button" class="linkbtn" data-act="pv" data-arg="grants">← Grants</button></div>
+  <div class="phead-row"><div class="stack" style="gap:6px"><p class="eyebrow mono">${a.id} · season ${a.season}</p><h1>${esc(a.title)}</h1></div>${pStatus(a)}</div>
+  <section class="card pad stack next"><p class="eyebrow">What happens next</p><p>${esc(pNext(a))}</p>${pTrack(a)}</section>
+  ${pAction(a)}
+  <div class="two">
+    <section class="card pad stack"><h2>Your application</h2><p>${esc(a.summary)}</p><dl class="kv"><div><dt>Dates</dt><dd>${fmtS(a.start)} – ${fmt(a.end)}</dd></div><div><dt>Beneficiaries</dt><dd>${esc(a.benef)}</dd></div></dl>${budgetTable(a)}</section>
+    <div class="stack">
+      ${a.payments.length ? `<section class="card pad stack"><h2>Payments</h2><div class="list">${a.payments.map(p => `<div class="li"><div class="t"><b class="mono">${usd(p.amt)}</b><span>${esc(p.label)}</span></div>${p.status === 'paid' ? chip('good', 'Paid ' + fmtS(p.date)) : chip('', p.status)}</div>`).join('')}</div></section>` : ''}
+      <section class="card pad stack"><h2>History</h2><ul class="log">${a.history.slice().reverse().map(h => `<li><time>${fmtS(h.d)}</time><span><b>${esc(h.who)}</b> · ${esc(h.what)}</span></li>`).join('')}</ul></section>
+    </div></div>`;
+}
+
+/* ---------- architecture ---------- */
+function renderArch() {
+  const m = (t, s, live) => `<div class="mod${live ? ' live' : ''}"><b>${t}</b><small>${s}</small></div>`;
+  return `<div class="arch">
+  <div class="stack" style="gap:6px"><p class="eyebrow">How it fits together</p><h1>One system, two faces</h1><p class="muted" style="max-width:68ch">Federations work in the Portal. FIDE staff and commissions work in the Management System. Both read and write the same records, so nothing is retyped and every step is logged. Green outline: working in this prototype.</p></div>
+  <section class="layer front"><h2>Federation Portal <small>front office · sign in with ChessID</small></h2><div class="mods">${m('Grants', 'apply, sign, report', 1)}${m('Membership & dues', 'invoices, payment status')}${m('Events', 'registration, sanctioning')}${m('Players & ratings', 'FIDE IDs, reports, titles')}${m('Officers & access', 'who can do what')}</div></section>
+  <p class="flowdown">same records, same rules ↕</p>
+  <section class="layer core"><h2>FIDE Management System <small>back office · roles, not names</small></h2><div class="mods">${m('Grants · PDC', 'review, approve, pay', 1)}${m('Federations', 'one record per federation', 1)}${m('Membership & dues', 'synced with payments.fide.com')}${m('Events & sanctioning', 'fees, arbiters')}${m('Ratings & titles', 'reports, transfers')}${m('Finance', 'budgets, commitments')}${m('Documents', 'letters, e-signature', 1)}${m('Dashboards', 'KPIs and deadlines', 1)}</div></section>
+  <section class="layer"><h2>Shared foundation</h2><div class="mods">${m('Identity', 'ChessID + FIDE ID', 1)}${m('Workflow engine', 'steps, deadlines, reminders', 1)}${m('Notifications', 'email, in-app', 1)}${m('Audit log', 'who did what, when', 1)}</div></section>
+  <section class="layer"><h2>Connected systems</h2><div class="mods">${m('payments.fide.com', 'dues and fees')}${m('FIDE rating database', 'players and ratings')}${m('PDC website', 'published results')}${m('Accounting', 'payment exports')}${m('Zoom and calendar', 'pitch booking')}${m('E-signature', 'agreements')}</div></section>
+  <div class="stack" style="gap:10px"><h2>Proposed phasing</h2><div class="phases">
+    <section class="card pad stack"><p class="eyebrow">Phase 1 · by 1 Mar 2027</p><p>Grants end to end, federation registry, roles and ChessID sign-in, documents and e-signature, dashboards.</p></section>
+    <section class="card pad stack"><p class="eyebrow">Phase 2</p><p>Membership and dues with payments.fide.com, events and sanctioning.</p></section>
+    <section class="card pad stack"><p class="eyebrow">Phase 3</p><p>Ratings and titles, finance and budgets across commissions.</p></section>
+  </div></div></div>`;
+}
+
+/* ---------- modal and toast ---------- */
+function letterHtml(a) {
+  return `<div class="letter"><p class="mono small muted">${a.id} · ${fmt(a.decided.date)}</p><p>To the President, ${esc(fedName(a.fed))}</p>
+  <p>The FIDE Planning and Development Commission has approved your application “${esc(a.title)}”.</p>
+  <dl><dt>Grant</dt><dd class="mono">${usd(a.approved)}</dd><dt>Payment</dt><dd>70% after signature and bank check, 30% after the final report is approved</dd><dt>Final report</dt><dd>Due ${fmt(addDays(a.end, 30))}, 30 days after the project ends</dd>${a.evaluation && a.evaluation.conditions ? `<dt>Conditions</dt><dd>${esc(a.evaluation.conditions)}</dd>` : ''}</dl>
+  <p>Please sign the grant agreement in the Federation Portal. We will ask for bank details after you sign.</p><p>Planning and Development Commission</p></div>`;
+}
+function publicHtml(a) {
+  return `<div class="publiccard"><p class="eyebrow">PDC results · ${a.season}</p><h2>${esc(a.title)}</h2><p class="muted">${esc(fedName(a.fed))} · ${a.cont} · FIDE grant ${usd(a.approved)}</p><div class="ph" role="img" aria-label="Photo placeholder"></div><p>${esc(a.report.summary || '')}</p></div>`;
+}
+function renderModal() {
+  const m = $('#modal');
+  if (!state.modal) { m.hidden = true; m.innerHTML = ''; return; }
+  m.hidden = false;
+  m.innerHTML = `<div class="modal-box" role="dialog" aria-modal="true" aria-label="${esc(state.modal.title)}"><div class="spread"><h2>${esc(state.modal.title)}</h2><button type="button" class="btn small ghost" data-act="closeModal">Close</button></div>${state.modal.html}</div>`;
+}
+let toastTimer;
+function toast(msg) { const t = $('#toast'); t.textContent = msg; t.hidden = false; clearTimeout(toastTimer); toastTimer = setTimeout(() => { t.hidden = true; }, 2800); }
+
+/* ---------- render ---------- */
+function render() {
+  renderChrome();
+  renderGuide();
+  $('#view').innerHTML = state.app === 'fms' ? renderFMS() : state.app === 'portal' ? renderPortal() : renderArch();
+  renderModal();
+}
+function go() { render(); window.scrollTo(0, 0); }
+
+/* ---------- actions ---------- */
+const need = (cond, msg) => { if (!cond) { state.form.err = msg; render(); return false; } return true; };
+const A = {
+  go: k => { state.app = k; if (k === 'portal' && state.signedIn && state.pview === 'signin') state.pview = 'overview'; go(); },
+  reset: () => { state = fresh(); go(); toast('Demo reset'); },
+  guide: () => { guide().go(); go(); },
+  fv: k => { state.fview = k; state.form = {}; go(); },
+  pv: k => { state.pview = k; state.form = {}; if (k === 'apply' && !state.wiz) startWizard(); go(); },
+  cont: c => { state.cont = c; render(); },
+  signin: () => { state.signedIn = true; state.pview = 'overview'; go(); toast('Signed in with ChessID'); },
+  newApp: () => { if (used2027(MYFED) >= 2) return toast('Both project slots for 2027 are used'); startWizard(); go(); },
+  track: t => { state.wiz.track = t; render(); },
+  slot: i => { state.wiz.slot = +i; state.wiz.err = null; render(); },
+  addLine: () => { state.wiz.lines.push({ cat: '', amt: '' }); render(); },
+  delLine: i => { if (state.wiz.lines.length > 1) state.wiz.lines.splice(+i, 1); render(); },
+  wStep: n => {
+    const w = state.wiz; n = +n; w.err = null;
+    if (n > w.step) {
+      if (w.step === 1 && (!w.title.trim() || !w.summary.trim())) w.err = 'Add a project title and a short description.';
+      else if (w.step === 1 && w.end <= w.start) w.err = 'The end date must be after the start date.';
+      else if (w.step === 2 && w.slot === null) w.err = 'Choose a time for your pitch.';
+      else if (w.step === 3 && w.lines.some(l => !String(l.cat).trim() || !(+l.amt > 0))) w.err = 'Every budget line needs a name and an amount above zero.';
+      else if (w.step === 3 && !(wizTotals(w).req > 0)) w.err = 'The requested amount must be above zero. Check the contributions.';
+      if (w.err) return render();
+    }
+    w.step = n; go();
+  },
+  submitApp: () => {
+    const w = state.wiz;
+    if (!w.declare) { w.err = 'Confirm that your president or board approved the application.'; return render(); }
+    const tt = wizTotals(w);
+    const nums = state.apps.filter(a => a.season === 2027).map(a => +a.id.slice(-3));
+    const id = 'PDC-2027-' + String(Math.max(...nums) + 1).padStart(3, '0');
+    const a = {
+      id, fed: MYFED, cont: FEDS[MYFED].cont, season: 2027, title: w.title.trim(), track: w.track, start: w.start, end: w.end, summary: w.summary.trim(), benef: w.benef,
+      budget: w.lines.map(l => ({ cat: String(l.cat).trim(), amt: +l.amt })), cofin: { fed: +w.cofinFed || 0, other: +w.cofinOther || 0 }, req: tt.req, requested: tt.req,
+      submitted: TODAY, stage: 'councillor', since: TODAY, due: addWD(TODAY, 3), flags: [], approvals: { management: null, treasurer: null }, review: null, evaluation: null,
+      signed: null, bank: null, payments: [], report: { due: null, status: 'none' }, decided: null, published: false,
+      pitch: { slot: SLOTS[w.slot].t, with: w.track === 'Education' ? 'EDU Commission' : 'PDC' }, history: [],
+    };
+    a.history.push({ d: TODAY, who: 'Federation', what: 'Short application submitted' }, { d: TODAY, who: 'System', what: 'Pitch booked: ' + a.pitch.slot + ' with ' + a.pitch.with }, { d: TODAY, who: 'Federation', what: 'Full application submitted' }, { d: TODAY, who: 'System', what: 'Eligibility checks passed: window, project limit, dues, reports' }, { d: TODAY, who: 'System', what: 'Routed to Councillor · Africa, due ' + fmt(a.due) });
+    state.apps.unshift(a); state.demoId = id; state.wiz = null; state.pview = 'app:' + id; state.form = {};
+    go(); toast('Submitted · ' + id);
+  },
+  score: arg => { const [k, n] = arg.split(':'); state.form.scores = state.form.scores || {}; state.form.scores[k] = +n; state.form.err = null; render(); },
+  review: id => {
+    const a = byId(id), f = state.form, s = f.scores || {};
+    if (!need(CRIT.every(([k]) => s[k]), 'Score all five criteria.')) return;
+    if (!need(f.coi, 'Confirm that you have no conflict of interest.')) return;
+    const t = CRIT.reduce((x, [k]) => x + s[k], 0);
+    a.review = { scores: { ...s }, total: t, comment: (f.comment || '').trim(), coi: true, by: ROLES.councillor.label, date: TODAY };
+    move(a, 'commission', ROLES.councillor.label, 'Review submitted: ' + t + ' / 25');
+    state.form = {}; go(); toast('Review sent to the commission');
+  },
+  evalOk: id => {
+    const a = byId(id), f = state.form, amt = Math.round(+String(f.amount).replace(/[^0-9.]/g, ''));
+    if (!need(amt > 0 && amt <= a.requested, 'Enter an amount between 1 and the requested ' + usd(a.requested) + '.')) return;
+    a.evaluation = { rec: 'approve', amount: amt, conditions: (f.conditions || '').trim(), by: ROLES[state.role].label };
+    move(a, 'approval', ROLES[state.role].label, 'Recommended for approval: ' + usd(amt));
+    state.form = {}; go(); toast('Sent to Management and Treasurer');
+  },
+  evalNo: id => {
+    const a = byId(id), f = state.form;
+    if (!need((f.reason || '').trim(), 'Give the reason the federation will see.')) return;
+    a.evaluation = { rec: 'decline', reason: f.reason.trim() }; a.declineReason = f.reason.trim();
+    a.decided = { date: TODAY, days: wdBetween(a.submitted, TODAY), outcome: 'declined' };
+    a.stage = 'declined'; a.since = TODAY; a.due = null; log(a, ROLES[state.role].label, 'Declined: ' + a.declineReason);
+    state.form = {}; go(); toast('Declined. The federation has been notified');
+  },
+  approve: id => {
+    const a = byId(id), r = state.role;
+    a.approvals[r] = { date: TODAY }; log(a, ROLES[r].label, 'Approved ' + usd(a.evaluation.amount));
+    if (a.approvals.management && a.approvals.treasurer) {
+      a.approved = a.evaluation.amount;
+      a.decided = { date: TODAY, days: wdBetween(a.submitted, TODAY), outcome: 'approved' };
+      a.payments = payPlan(a.approved);
+      move(a, 'agreement', 'System', 'Decision letter and agreement sent to the federation');
+      state.form = {}; go(); toast('Approved. Decision sent to the federation');
+    } else { state.form = {}; go(); toast('Approved. Waiting for ' + (r === 'management' ? 'the Treasurer' : 'Management')); }
+  },
+  returnC: id => {
+    const a = byId(id), f = state.form;
+    if (!need((f.ret || '').trim(), 'Add a comment so the commission knows what to change.')) return;
+    a.approvals = { management: null, treasurer: null };
+    move(a, 'commission', ROLES[state.role].label, 'Returned to commission: ' + f.ret.trim());
+    state.form = {}; go(); toast('Returned to the commission');
+  },
+  hold: id => { const a = byId(id); log(a, 'Secretariat', 'On hold until the overdue report arrives; federation notified'); state.form = {}; render(); toast('Federation notified'); },
+  override: id => {
+    const a = byId(id), f = state.form;
+    if (!need((f.note || '').trim(), 'Add a note explaining the override.')) return;
+    a.flags = []; move(a, 'councillor', 'Secretariat', 'Check overridden: ' + f.note.trim());
+    state.form = {}; go(); toast('Routed to the councillor');
+  },
+  pitchHeld: id => { const a = byId(id); move(a, 'full', 'Secretariat', 'Pitch held; full application form sent to the federation'); state.form = {}; go(); toast('Full application form sent'); },
+  sign: id => {
+    const a = byId(id), f = state.form;
+    if (!need((f.signName || '').trim(), 'Type your full name to sign.')) return;
+    if (!need(f.auth, 'Confirm that you are authorised to sign for the federation.')) return;
+    a.signed = { by: f.signName.trim(), date: TODAY }; a.report.due = addDays(a.end, 30);
+    log(a, 'Federation', 'Agreement signed by ' + a.signed.by);
+    state.form = {}; render(); toast('Agreement signed');
+  },
+  attach: () => { state.form.letter = 'bank-confirmation-letter.pdf'; state.form.err = null; render(); },
+  bank: id => {
+    const a = byId(id), f = state.form;
+    if (!need(['holder', 'bankName', 'iban', 'swift'].every(k => (f[k] || '').trim()), 'Fill in all four bank fields.')) return;
+    if (!need(f.letter, 'Attach the bank confirmation letter.')) return;
+    a.bank = { holder: f.holder.trim(), bankName: f.bankName.trim(), iban: f.iban.trim(), swift: f.swift.trim(), letter: f.letter, verified: false };
+    move(a, 'payment', 'Federation', 'Bank details submitted with confirmation letter');
+    state.form = {}; go(); toast('Bank details sent to Accounting');
+  },
+  pay: id => {
+    const a = byId(id), f = state.form;
+    if (!need(f.callback, 'Confirm the call-back to the federation’s registered contact.')) return;
+    a.bank.verified = true; a.payments[0].status = 'paid'; a.payments[0].date = TODAY;
+    move(a, 'project', 'Accounting', 'Bank details verified by call-back; tranche 1 paid: ' + usd(a.payments[0].amt));
+    state.form = {}; go(); toast('Tranche 1 paid');
+  },
+  report: id => {
+    const a = byId(id), f = state.form;
+    if (!need((f.rsum || '').trim() && (f.rpart || '').trim(), 'Describe what happened and how many people took part.')) return;
+    a.report = { ...a.report, status: 'submitted', summary: f.rsum.trim(), participants: f.rpart.trim(), spent: +String(f.rspent).replace(/[^0-9.]/g, '') || 0, photos: 3, consent: !!f.consent, date: TODAY };
+    move(a, 'report', 'Federation', 'Final report submitted');
+    state.form = {}; go(); toast('Report submitted');
+  },
+  rApprove: id => {
+    const a = byId(id);
+    a.report.status = 'approved'; a.payments[1].status = 'paid'; a.payments[1].date = TODAY; a.published = true;
+    move(a, 'closed', 'Grants coordinator', 'Report approved; tranche 2 released; results published on the PDC website');
+    state.form = {}; go(); toast('Published on the PDC website');
+  },
+  rChanges: id => {
+    const a = byId(id), f = state.form;
+    if (!need((f.rc || '').trim(), 'Add a comment so the federation knows what to change.')) return;
+    a.report.status = 'changes'; move(a, 'project', 'Grants coordinator', 'Changes requested: ' + f.rc.trim());
+    state.form = {}; go(); toast('Sent back to the federation');
+  },
+  letter: id => { state.modal = { title: 'Decision letter', html: letterHtml(byId(id)) }; renderModal(); },
+  public: id => { state.modal = { title: 'Public page preview', html: publicHtml(byId(id)) }; renderModal(); },
+  closeModal: () => { state.modal = null; renderModal(); },
+};
+
+document.addEventListener('click', e => {
+  const t = e.target.closest('[data-act]');
+  if (!t || t.disabled) return;
+  const fn = A[t.dataset.act];
+  if (fn) { e.preventDefault(); fn(t.dataset.arg); }
+});
+document.addEventListener('click', e => { if (e.target.id === 'modal') A.closeModal(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && state.modal) A.closeModal(); });
+function onField(e) {
+  const t = e.target;
+  if (t.id === 'role-select') { state.role = t.value; state.form = {}; return go(); }
+  const val = t.type === 'checkbox' ? t.checked : t.value;
+  if (t.dataset.f !== undefined) { state.form[t.dataset.f] = val; if (state.form.err && e.type === 'change') { state.form.err = null; } }
+  else if (t.dataset.w !== undefined && state.wiz) { state.wiz[t.dataset.w] = val; }
+  else if (t.dataset.line !== undefined && state.wiz) { state.wiz.lines[+t.dataset.line][t.dataset.lf] = val; }
+  if (state.wiz && (t.dataset.line !== undefined || t.dataset.w === 'cofinFed' || t.dataset.w === 'cofinOther')) {
+    const tt = wizTotals(state.wiz); const st = $('#sum-t'), sr = $('#sum-r');
+    if (st) st.textContent = usd(tt.t); if (sr) sr.textContent = usd(tt.req);
+  }
+}
+document.addEventListener('input', onField);
+document.addEventListener('change', e => { if (e.target.type === 'checkbox' || e.target.tagName === 'SELECT') onField(e); });
+
+render();
+</script>
+
+</body>
+</html>
